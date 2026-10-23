@@ -8,13 +8,9 @@ import {
   Briefcase,
   Calendar,
   Sparkles,
-  PlusCircle,
+  Plus,
   X,
-  CalendarDays,
-  MapPin,
-  AlertTriangle,
-  ChevronDown,
-  Building2
+  ChevronDown
 } from 'lucide-react';
 import { useEventContext } from '../../context/EventContext';
 import { ActiveTab, EventType } from '../../types/event';
@@ -97,7 +93,7 @@ export const Sidebar: React.FC = () => {
       icon: CheckSquare,
       hideInGuest: true,
       badge: metrics.overdueTasksCount > 0 ? (
-        <span className="ml-auto inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30 animate-pulse">
+        <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-medium">
           {metrics.overdueTasksCount}
         </span>
       ) : null
@@ -108,8 +104,8 @@ export const Sidebar: React.FC = () => {
       icon: Wallet,
       hideInGuest: true,
       badge: metrics.isOverTotalLimit ? (
-        <span className="ml-auto inline-flex items-center p-1 rounded-full bg-rose-500/20 text-rose-300" title="Превышение бюджета">
-          <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+        <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-medium">
+          перерасход
         </span>
       ) : null
     },
@@ -118,12 +114,12 @@ export const Sidebar: React.FC = () => {
     { id: 'calendar', label: 'Календарь', icon: Calendar },
     {
       id: 'ai_assistant',
-      label: 'ИИ-Ассистент',
+      label: 'Автоматизация и аудит',
       icon: Sparkles,
       hideInGuest: true,
       badge: (
-        <span className="ml-auto inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-          AI
+        <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-zinc-200/80 text-zinc-700 font-medium">
+          AUTO
         </span>
       )
     }
@@ -133,66 +129,65 @@ export const Sidebar: React.FC = () => {
 
   return (
     <>
-      <aside className="w-64 min-w-[16rem] bg-slate-950/90 border-r border-slate-800 flex flex-col h-screen sticky top-0 select-none z-20">
+      <aside className="w-60 min-w-[240px] bg-[#F4F4F5]/70 border-r border-zinc-200 flex flex-col h-screen select-none sticky top-0 z-20">
         {/* Brand Header */}
-        <div className="p-5 border-b border-slate-800/80 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-indigo-400 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
-                EventTech <span className="text-xs px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">PRO</span>
-              </h1>
-              <p className="text-[11px] text-slate-400 font-medium">Hub управления ивентами</p>
-            </div>
+        <div className="h-12 px-4 border-b border-zinc-200 flex items-center justify-between bg-white/50">
+          <div className="flex items-center gap-2">
+            <span className="w-5 h-5 rounded bg-zinc-900 text-white flex items-center justify-center text-xs font-bold font-mono">
+              E
+            </span>
+            <span className="text-xs font-semibold text-zinc-900 tracking-tight">
+              EventTech Hub
+            </span>
           </div>
+          <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600 border border-zinc-200">
+            v1.0
+          </span>
         </div>
 
-        {/* Event Selector & New Button */}
+        {/* Project Switcher */}
         {currentUserRole !== 'guest' ? (
-          <div className="p-3 border-b border-slate-800/60 bg-slate-900/40">
-            <label className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-1.5 px-1">
-              Текущее мероприятие
-            </label>
-            <div className="relative mb-2">
-              <select
-                aria-label="Выбрать активное мероприятие"
-                value={activeEventId}
-                onChange={(e) => setActiveEventId(e.target.value)}
-                className="w-full bg-slate-800 text-xs text-slate-200 rounded-lg px-2.5 py-2 pr-8 appearance-none border border-slate-700/70 focus:outline-none focus:border-indigo-500 cursor-pointer font-medium hover:border-slate-600 transition truncate"
-              >
-                {events.map(ev => (
-                  <option key={ev.id} value={ev.id}>
-                    {ev.title}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
+          <div className="p-3 border-b border-zinc-200">
+            <div className="flex items-center gap-1.5">
+              <div className="relative flex-1">
+                <select
+                  aria-label="Выбрать активное мероприятие"
+                  value={activeEventId}
+                  onChange={(e) => setActiveEventId(e.target.value)}
+                  className="w-full h-8 pl-2.5 pr-7 appearance-none bg-white border border-zinc-200 hover:border-zinc-300 rounded-md text-xs font-medium text-zinc-900 truncate focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 cursor-pointer shadow-sm transition-colors"
+                >
+                  {events.map(ev => (
+                    <option key={ev.id} value={ev.id}>
+                      {ev.title}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="w-3.5 h-3.5 text-zinc-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
 
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="w-full flex items-center justify-center gap-2 py-1.5 px-3 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 text-xs font-semibold transition group shadow-sm"
-            >
-              <PlusCircle className="w-3.5 h-3.5 group-hover:scale-110 transition-transform text-indigo-400" />
-              <span>+ Новое мероприятие</span>
-            </button>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="h-8 w-8 inline-flex items-center justify-center rounded-md bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 hover:text-zinc-900 transition-colors shadow-sm shrink-0"
+                title="Новое мероприятие"
+              >
+                <Plus className="w-3.5 h-3.5" />
+              </button>
+            </div>
           </div>
         ) : (
-          <div className="p-4 border-b border-slate-800/60 bg-indigo-950/20">
-            <div className="flex items-center gap-2 text-indigo-300 text-xs font-medium">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-              Гостевой портал участника
+          <div className="p-3 border-b border-zinc-200">
+            <div className="px-2.5 py-1.5 bg-white border border-zinc-200 rounded-md text-xs font-medium text-zinc-700 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              Гостевой портал
             </div>
           </div>
         )}
 
         {/* Navigation Menu */}
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider px-2 py-1">
-            {currentUserRole === 'guest' ? 'Навигация гостя' : 'Разделы системы'}
-          </p>
+        <nav className="flex-1 p-2.5 space-y-0.5 overflow-y-auto">
+          <div className="px-2 py-1 text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
+            {currentUserRole === 'guest' ? 'Гостевой вид' : 'Разделы'}
+          </div>
           {visibleMenuItems.map(item => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -200,56 +195,53 @@ export const Sidebar: React.FC = () => {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition group relative ${
+                className={`w-full h-8 px-2.5 rounded-md text-[13px] font-medium flex items-center justify-between transition-colors ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/25'
-                    : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                    ? 'bg-zinc-200/80 text-zinc-900'
+                    : 'text-zinc-600 hover:bg-zinc-200/40 hover:text-zinc-900'
                 }`}
               >
-                <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'}`} />
-                <span className="truncate">{item.label}</span>
-                {item.badge}
+                <div className="flex items-center gap-2.5 truncate">
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-zinc-900' : 'text-zinc-500'}`} />
+                  <span className="truncate">{item.label}</span>
+                </div>
+                {item.badge && <span className="ml-2 shrink-0">{item.badge}</span>}
               </button>
             );
           })}
         </nav>
 
-        {/* Footer info */}
-        <div className="p-3 border-t border-slate-800/80 bg-slate-950/60 text-[11px] text-slate-500 flex items-center justify-between">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            Локальная БД активна
+        {/* Footer */}
+        <div className="p-3 border-t border-zinc-200 text-xs text-zinc-500 flex items-center justify-between bg-white/40">
+          <span className="flex items-center gap-1.5 font-mono text-[11px]">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            Локальная БД
           </span>
-          <span className="font-mono text-[10px] text-slate-600">MVP v1.0</span>
+          <span className="font-mono text-[11px] text-zinc-400">MVP</span>
         </div>
       </aside>
 
-      {/* Modal: Create New Event */}
+      {/* Modal: New Event */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
-          <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/40">
-              <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-                  <CalendarDays className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-white">Создание нового мероприятия</h3>
-                  <p className="text-xs text-slate-400">Заполните базовый паспорт события для открытия проекта</p>
-                </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40">
+          <div className="bg-white border border-zinc-200 rounded-lg w-full max-w-lg shadow-md overflow-hidden flex flex-col">
+            <div className="px-5 py-3.5 border-b border-zinc-200 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-900">Создание нового мероприятия</h3>
+                <p className="text-xs text-zinc-500">Заполните базовый паспорт события</p>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                className="text-zinc-400 hover:text-zinc-700 p-1 rounded-md transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateSubmit} className="p-5 space-y-4 overflow-y-auto flex-1">
+            <form onSubmit={handleCreateSubmit} className="p-5 space-y-3.5 overflow-y-auto max-h-[80vh]">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  Название мероприятия <span className="text-rose-400">*</span>
+                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                  Название мероприятия <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -257,17 +249,17 @@ export const Sidebar: React.FC = () => {
                   placeholder="Например: Хакатон «Код Будущего 2026»"
                   value={formData.title}
                   onChange={e => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition"
+                  className="input-base w-full"
                 />
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Тип события</label>
+                  <label className="block text-xs font-medium text-zinc-700 mb-1">Тип события</label>
                   <select
                     value={formData.type}
                     onChange={e => setFormData({ ...formData, type: e.target.value as EventType })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition"
+                    className="input-base w-full cursor-pointer"
                   >
                     <option value="Хакатон">Хакатон</option>
                     <option value="Конференция">Конференция</option>
@@ -278,137 +270,121 @@ export const Sidebar: React.FC = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Главный организатор</label>
+                  <label className="block text-xs font-medium text-zinc-700 mb-1">Главный организатор</label>
                   <input
                     type="text"
                     required
                     value={formData.leadOrganizer}
                     onChange={e => setFormData({ ...formData, leadOrganizer: e.target.value })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition"
+                    className="input-base w-full"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2.5">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Дата старта</label>
+                  <label className="block text-xs font-medium text-zinc-700 mb-1">Дата старта</label>
                   <input
                     type="date"
                     required
                     value={formData.startDate}
                     onChange={e => setFormData({ ...formData, startDate: e.target.value })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition"
+                    className="input-base w-full font-mono text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Время старта</label>
+                  <label className="block text-xs font-medium text-zinc-700 mb-1">Время</label>
                   <input
                     type="time"
                     required
                     value={formData.startTime}
                     onChange={e => setFormData({ ...formData, startTime: e.target.value })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition"
+                    className="input-base w-full font-mono text-xs"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Дата завершения</label>
+                  <label className="block text-xs font-medium text-zinc-700 mb-1">Дата окончания</label>
                   <input
                     type="date"
                     required
                     value={formData.endDate}
                     onChange={e => setFormData({ ...formData, endDate: e.target.value })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition"
+                    className="input-base w-full font-mono text-xs"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">Лимит бюджета (₽)</label>
+                  <label className="block text-xs font-medium text-zinc-700 mb-1">Лимит бюджета (₽)</label>
                   <input
                     type="number"
                     min="0"
                     step="50000"
                     value={formData.totalBudgetLimit}
                     onChange={e => setFormData({ ...formData, totalBudgetLimit: Math.max(0, Number(e.target.value)) })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition font-mono"
+                    className="input-base w-full font-mono"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">План гостей (чел.)</label>
+                  <label className="block text-xs font-medium text-zinc-700 mb-1">План гостей (чел.)</label>
                   <input
                     type="number"
                     min="1"
                     value={formData.plannedHeadcount}
                     onChange={e => setFormData({ ...formData, plannedHeadcount: Math.max(1, Number(e.target.value)) })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition font-mono"
+                    className="input-base w-full font-mono"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Локация проведения</label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    required
-                    placeholder="Например: Конгресс-центр Технопарка, Москва"
-                    value={formData.location}
-                    onChange={e => setFormData({ ...formData, location: e.target.value })}
-                    className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-9 pr-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition"
-                  />
-                  <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                </div>
+                <label className="block text-xs font-medium text-zinc-700 mb-1">Локация проведения</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Например: Конгресс-центр Технопарка, Москва"
+                  value={formData.location}
+                  onChange={e => setFormData({ ...formData, location: e.target.value })}
+                  className="input-base w-full"
+                />
               </div>
 
-              <div className="flex items-center gap-2 pt-1">
+              <div className="flex items-center gap-2 pt-0.5">
                 <input
                   type="checkbox"
                   id="isOnlineCheck"
                   checked={formData.isOnline}
                   onChange={e => setFormData({ ...formData, isOnline: e.target.checked })}
-                  className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 bg-slate-800 w-4 h-4"
+                  className="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 w-3.5 h-3.5"
                 />
-                <label htmlFor="isOnlineCheck" className="text-xs text-slate-300 cursor-pointer">
+                <label htmlFor="isOnlineCheck" className="text-xs text-zinc-700 cursor-pointer">
                   Онлайн-формат (трансляция / виртуальная платформа)
                 </label>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Описание и формат</label>
+                <label className="block text-xs font-medium text-zinc-700 mb-1">Описание и формат</label>
                 <textarea
                   rows={2}
-                  placeholder="Краткое описание мероприятия и целевой аудитории..."
                   value={formData.description}
                   onChange={e => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition resize-none"
+                  className="w-full px-2.5 py-1.5 rounded-md bg-white border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 resize-none"
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Цели и ключевые результаты (OKR)</label>
-                <input
-                  type="text"
-                  placeholder="Например: Создать 15 работающих прототипов, привлечь 300 разработчиков"
-                  value={formData.goals}
-                  onChange={e => setFormData({ ...formData, goals: e.target.value })}
-                  className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition"
-                />
-              </div>
-
-              <div className="pt-3 border-t border-slate-800 flex items-center justify-end gap-3">
+              <div className="pt-3 border-t border-zinc-200 flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 text-xs font-medium text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
+                  className="btn-secondary"
                 >
                   Отмена
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow-lg shadow-indigo-600/30 transition flex items-center gap-1.5"
+                  className="btn-primary"
                 >
-                  <PlusCircle className="w-4 h-4" />
                   Создать проект
                 </button>
               </div>

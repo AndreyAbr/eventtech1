@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  Sparkles,
+  Cpu,
   CheckSquare,
   Wallet,
   AlertTriangle,
@@ -11,10 +11,12 @@ import {
   ArrowRight,
   ShieldAlert,
   Zap,
-  ListTodo
+  ListTodo,
+  FileSpreadsheet,
+  Check
 } from 'lucide-react';
 import { useEventContext } from '../../context/EventContext';
-import { generateEventBlueprint, GeneratedTask, GeneratedBudgetDistribution } from '../../utils/aiGenerator';
+import { generateEventBlueprint } from '../../utils/aiGenerator';
 import { formatCurrency, formatDate } from '../../utils/analytics';
 
 export const AiAssistantView: React.FC = () => {
@@ -34,7 +36,11 @@ export const AiAssistantView: React.FC = () => {
   const [selectedTaskIndices, setSelectedTaskIndices] = useState<number[]>([0, 1, 2]);
 
   if (!activeEvent) {
-    return <div className="p-8 text-center text-slate-400">Мероприятие не выбрано.</div>;
+    return (
+      <div className="p-8 text-center text-xs text-zinc-500">
+        Мероприятие не выбрано. Выберите или создайте проект в меню слева.
+      </div>
+    );
   }
 
   // Generate blueprint based on current event state
@@ -49,6 +55,14 @@ export const AiAssistantView: React.FC = () => {
     setSelectedTaskIndices(prev =>
       prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
     );
+  };
+
+  const toggleSelectAllTasks = () => {
+    if (selectedTaskIndices.length === blueprint.recommendedTasks.length) {
+      setSelectedTaskIndices([]);
+    } else {
+      setSelectedTaskIndices(blueprint.recommendedTasks.map((_, idx) => idx));
+    }
   };
 
   const handleApplySelectedTasks = () => {
@@ -77,309 +91,393 @@ export const AiAssistantView: React.FC = () => {
     setActiveTab('budget');
   };
 
+  const criticalRisksCount = blueprint.detectedRisks.filter(r => r.severity === 'critical').length;
+
   return (
-    <div className="space-y-6 pb-12 animate-fade-in">
-      {/* AI Assistant Banner */}
-      <div className="glass-panel p-6 rounded-3xl border border-indigo-500/40 bg-gradient-to-r from-indigo-950/40 via-slate-900/60 to-purple-950/40 relative overflow-hidden shadow-2xl">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 relative z-10">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-500 text-white flex items-center justify-center shadow-lg shadow-indigo-500/30 shrink-0">
-              <Sparkles className="w-6 h-6 animate-pulse" />
+    <div className="space-y-4">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 pb-3">
+        <div>
+          <h1 className="text-lg font-semibold text-zinc-900 tracking-tight">
+            Автоматизация и аудит проекта
+          </h1>
+          <p className="text-xs text-zinc-500">
+            Детерминированный ассистент планирования, аудит рисков и расчет сметы по нормативам
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono font-medium bg-zinc-100 text-zinc-700 border border-zinc-200">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            Модель: Детерминированный анализатор
+          </span>
+        </div>
+      </div>
+
+      {/* Engineering Summary Card */}
+      <div className="card-surface p-4 bg-zinc-50/60">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="space-y-1 max-w-3xl">
+            <div className="flex items-center gap-2">
+              <Cpu className="w-4 h-4 text-zinc-700" />
+              <span className="text-xs font-semibold text-zinc-900 uppercase tracking-wider">
+                Заключение координатора
+              </span>
+              <span className="text-[11px] font-mono text-zinc-500">
+                формат: {activeEvent.type}
+              </span>
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-lg font-bold text-white">
-                  EventTech AI Координатор
-                </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/30 text-indigo-300 border border-indigo-500/40">
-                  Модель: Детерминированный Аналитик
-                </span>
-              </div>
-              <p className="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
-                {blueprint.summary}
-              </p>
-            </div>
+            <p className="text-xs text-zinc-600 leading-relaxed">
+              {blueprint.summary}
+            </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xs text-slate-400">
-              Статус анализа: <strong className="text-emerald-400">Готов</strong>
-            </span>
+          <div className="flex items-center gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-zinc-200 w-full md:w-auto justify-between md:justify-end">
+            <div className="text-right">
+              <span className="block text-[11px] text-zinc-400">Статус проверок</span>
+              <span className="inline-flex items-center gap-1 font-mono text-xs font-medium text-emerald-700">
+                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                Готов к импорту
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Module Selector Navigation */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* Module Selector Navigation Tabs */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         <button
           onClick={() => setActiveModule('checklist')}
-          className={`p-3.5 rounded-2xl border text-left transition flex items-center gap-3 ${
+          className={`p-3 rounded-md border text-left transition-colors flex items-center justify-between ${
             activeModule === 'checklist'
-              ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/30'
-              : 'glass-panel text-slate-300 hover:border-slate-700'
+              ? 'bg-zinc-900 text-white border-zinc-900 shadow-sm'
+              : 'bg-white text-zinc-700 border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900'
           }`}
         >
-          <ListTodo className="w-5 h-5 shrink-0" />
-          <div>
-            <div className="text-xs font-bold">1. План & Чек-лист</div>
-            <div className={`text-[10px] ${activeModule === 'checklist' ? 'text-indigo-200' : 'text-slate-500'}`}>
-              Рекомендуемые задачи
+          <div className="flex items-center gap-2.5">
+            <ListTodo className={`w-4 h-4 ${activeModule === 'checklist' ? 'text-white' : 'text-zinc-500'}`} />
+            <div>
+              <div className="text-xs font-semibold">1. Базовый план работ</div>
+              <div className={`text-[11px] font-mono ${activeModule === 'checklist' ? 'text-zinc-300' : 'text-zinc-400'}`}>
+                {blueprint.recommendedTasks.length} задач
+              </div>
             </div>
           </div>
+          <ArrowRight className={`w-3.5 h-3.5 ${activeModule === 'checklist' ? 'text-zinc-400' : 'text-zinc-300'}`} />
         </button>
 
         <button
           onClick={() => setActiveModule('budget')}
-          className={`p-3.5 rounded-2xl border text-left transition flex items-center gap-3 ${
+          className={`p-3 rounded-md border text-left transition-colors flex items-center justify-between ${
             activeModule === 'budget'
-              ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/30'
-              : 'glass-panel text-slate-300 hover:border-slate-700'
+              ? 'bg-zinc-900 text-white border-zinc-900 shadow-sm'
+              : 'bg-white text-zinc-700 border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900'
           }`}
         >
-          <Wallet className="w-5 h-5 shrink-0" />
-          <div>
-            <div className="text-xs font-bold">2. Смета & Бюджет</div>
-            <div className={`text-[10px] ${activeModule === 'budget' ? 'text-indigo-200' : 'text-slate-500'}`}>
-              Оптимальные доли
+          <div className="flex items-center gap-2.5">
+            <Wallet className={`w-4 h-4 ${activeModule === 'budget' ? 'text-white' : 'text-zinc-500'}`} />
+            <div>
+              <div className="text-xs font-semibold">2. Нормативы сметы</div>
+              <div className={`text-[11px] font-mono ${activeModule === 'budget' ? 'text-zinc-300' : 'text-zinc-400'}`}>
+                {blueprint.recommendedBudget.length} категорий
+              </div>
             </div>
           </div>
+          <ArrowRight className={`w-3.5 h-3.5 ${activeModule === 'budget' ? 'text-zinc-400' : 'text-zinc-300'}`} />
         </button>
 
         <button
           onClick={() => setActiveModule('risks')}
-          className={`p-3.5 rounded-2xl border text-left transition flex items-center gap-3 ${
+          className={`p-3 rounded-md border text-left transition-colors flex items-center justify-between ${
             activeModule === 'risks'
-              ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/30'
-              : 'glass-panel text-slate-300 hover:border-slate-700'
+              ? 'bg-zinc-900 text-white border-zinc-900 shadow-sm'
+              : 'bg-white text-zinc-700 border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900'
           }`}
         >
-          <ShieldAlert className="w-5 h-5 shrink-0" />
-          <div>
-            <div className="text-xs font-bold">3. Аудит рисков</div>
-            <div className={`text-[10px] ${activeModule === 'risks' ? 'text-indigo-200' : 'text-slate-500'}`}>
-              {blueprint.detectedRisks.length} предупреждений
+          <div className="flex items-center gap-2.5">
+            <ShieldAlert className={`w-4 h-4 ${activeModule === 'risks' ? 'text-white' : 'text-zinc-500'}`} />
+            <div>
+              <div className="text-xs font-semibold">3. Диагностика рисков</div>
+              <div className={`text-[11px] font-mono ${activeModule === 'risks' ? 'text-zinc-300' : 'text-zinc-400'}`}>
+                {blueprint.detectedRisks.length} проверок
+                {criticalRisksCount > 0 && (
+                  <span className={`ml-1 font-semibold ${activeModule === 'risks' ? 'text-red-300' : 'text-red-600'}`}>
+                    ({criticalRisksCount} крит.)
+                  </span>
+                )}
+              </div>
             </div>
           </div>
+          <ArrowRight className={`w-3.5 h-3.5 ${activeModule === 'risks' ? 'text-zinc-400' : 'text-zinc-300'}`} />
         </button>
 
         <button
           onClick={() => setActiveModule('schedule')}
-          className={`p-3.5 rounded-2xl border text-left transition flex items-center gap-3 ${
+          className={`p-3 rounded-md border text-left transition-colors flex items-center justify-between ${
             activeModule === 'schedule'
-              ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/30'
-              : 'glass-panel text-slate-300 hover:border-slate-700'
+              ? 'bg-zinc-900 text-white border-zinc-900 shadow-sm'
+              : 'bg-white text-zinc-700 border-zinc-200 hover:bg-zinc-50 hover:text-zinc-900'
           }`}
         >
-          <Clock className="w-5 h-5 shrink-0" />
-          <div>
-            <div className="text-xs font-bold">4. Тайминг дня</div>
-            <div className={`text-[10px] ${activeModule === 'schedule' ? 'text-indigo-200' : 'text-slate-500'}`}>
-              Почасовая программа
+          <div className="flex items-center gap-2.5">
+            <Clock className={`w-4 h-4 ${activeModule === 'schedule' ? 'text-white' : 'text-zinc-500'}`} />
+            <div>
+              <div className="text-xs font-semibold">4. Тайминг площадки</div>
+              <div className={`text-[11px] font-mono ${activeModule === 'schedule' ? 'text-zinc-300' : 'text-zinc-400'}`}>
+                {blueprint.eventSchedule.length} слотов дня
+              </div>
             </div>
           </div>
+          <ArrowRight className={`w-3.5 h-3.5 ${activeModule === 'schedule' ? 'text-zinc-400' : 'text-zinc-300'}`} />
         </button>
       </div>
 
       {/* MODULE 1: CHECKLIST GENERATOR */}
       {activeModule === 'checklist' && (
-        <div className="glass-panel p-6 rounded-3xl space-y-5 animate-fade-in">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+        <div className="card-surface overflow-hidden">
+          <div className="p-4 border-b border-zinc-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-50/50">
             <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <CheckSquare className="w-4 h-4 text-indigo-400" />
-                Рекомендованный чек-лист подготовки для «{activeEvent.type}»
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Сгенерировано с учетом даты старта ({formatDate(activeEvent.startDate)}) и масштаба мероприятия
+              <h2 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
+                <CheckSquare className="w-3.5 h-3.5 text-zinc-700" />
+                Рекомендованный чек-лист подготовки («{activeEvent.type}»)
+              </h2>
+              <p className="text-xs text-zinc-500 mt-0.5">
+                Сгенерировано с учетом даты старта (<span className="font-mono">{formatDate(activeEvent.startDate)}</span>) и масштаба мероприятия
               </p>
             </div>
 
-            <button
-              onClick={handleApplySelectedTasks}
-              disabled={selectedTaskIndices.length === 0}
-              className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition flex items-center gap-2 shrink-0 self-start sm:self-auto"
-            >
-              <Zap className="w-3.5 h-3.5" />
-              <span>Добавить в план ({selectedTaskIndices.length} задач)</span>
-            </button>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={toggleSelectAllTasks}
+                className="btn-secondary h-8"
+              >
+                {selectedTaskIndices.length === blueprint.recommendedTasks.length
+                  ? 'Снять выбор'
+                  : 'Выбрать все'}
+              </button>
+
+              <button
+                onClick={handleApplySelectedTasks}
+                disabled={selectedTaskIndices.length === 0}
+                className="btn-primary h-8"
+              >
+                <Zap className="w-3.5 h-3.5" />
+                <span>Импортировать задачи в план ({selectedTaskIndices.length})</span>
+              </button>
+            </div>
           </div>
 
-          <div className="space-y-3">
-            {blueprint.recommendedTasks.map((task, idx) => {
-              const isSelected = selectedTaskIndices.includes(idx);
-              return (
-                <div
-                  key={idx}
-                  onClick={() => toggleTaskSelection(idx)}
-                  className={`p-4 rounded-2xl border transition cursor-pointer flex items-start gap-4 ${
-                    isSelected
-                      ? 'bg-indigo-950/20 border-indigo-500/50'
-                      : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={() => {}}
-                    className="mt-1 rounded border-slate-700 text-indigo-600 focus:ring-indigo-500 bg-slate-800 w-4 h-4 cursor-pointer"
-                  />
-
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap mb-1">
-                      <span className="text-xs font-bold text-white">
-                        {task.title}
-                      </span>
-                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-400 border border-slate-700">
-                        {task.category}
-                      </span>
-                      <span
-                        className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase ${
-                          task.priority === 'critical'
-                            ? 'bg-rose-500/20 text-rose-300'
-                            : 'bg-amber-500/20 text-amber-300'
-                        }`}
-                      >
-                        {task.priority === 'critical' ? 'Критично' : 'Высокий'}
-                      </span>
-                    </div>
-
-                    <p className="text-xs text-slate-300 mb-2">
-                      {task.description}
-                    </p>
-
-                    <div className="flex items-center gap-3 text-[11px] text-slate-400 font-mono">
-                      <span className="flex items-center gap-1 text-indigo-300">
-                        <Calendar className="w-3 h-3" />
-                        Рекомендуемый дедлайн: {formatDate(task.deadlineDate)}
-                      </span>
-                      <span>•</span>
-                      <span>За {Math.abs(task.daysBeforeStart)} дн. до старта</span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-zinc-50/80 border-b border-zinc-200 text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
+                  <th className="py-2.5 px-3.5 w-10 text-center">
+                    <input
+                      type="checkbox"
+                      checked={selectedTaskIndices.length === blueprint.recommendedTasks.length && blueprint.recommendedTasks.length > 0}
+                      onChange={toggleSelectAllTasks}
+                      className="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 w-3.5 h-3.5 cursor-pointer"
+                    />
+                  </th>
+                  <th className="py-2.5 px-3.5">Задача и описание</th>
+                  <th className="py-2.5 px-3.5">Категория</th>
+                  <th className="py-2.5 px-3.5">Приоритет</th>
+                  <th className="py-2.5 px-3.5">Рекомендуемый дедлайн</th>
+                  <th className="py-2.5 px-3.5 text-right">Смещение</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-200 text-xs">
+                {blueprint.recommendedTasks.map((task, idx) => {
+                  const isSelected = selectedTaskIndices.includes(idx);
+                  return (
+                    <tr
+                      key={idx}
+                      onClick={() => toggleTaskSelection(idx)}
+                      className={`cursor-pointer transition-colors ${
+                        isSelected ? 'bg-zinc-50' : 'hover:bg-zinc-50/50'
+                      }`}
+                    >
+                      <td className="py-3 px-3.5 text-center" onClick={e => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleTaskSelection(idx)}
+                          className="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 w-3.5 h-3.5 cursor-pointer"
+                        />
+                      </td>
+                      <td className="py-3 px-3.5">
+                        <div className="font-medium text-zinc-900 leading-snug">{task.title}</div>
+                        <div className="text-[11px] text-zinc-500 mt-0.5 leading-relaxed">{task.description}</div>
+                      </td>
+                      <td className="py-3 px-3.5 whitespace-nowrap">
+                        <span className="font-mono text-[11px] text-zinc-600 bg-zinc-100 border border-zinc-200 px-1.5 py-0.5 rounded">
+                          {task.category}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3.5 whitespace-nowrap">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium border ${
+                            task.priority === 'critical'
+                              ? 'bg-red-50 text-red-700 border-red-200/70'
+                              : 'bg-amber-50 text-amber-700 border-amber-200/70'
+                          }`}
+                        >
+                          <span
+                            className={`w-1.5 h-1.5 rounded-full ${
+                              task.priority === 'critical' ? 'bg-red-500' : 'bg-amber-500'
+                            }`}
+                          />
+                          {task.priority === 'critical' ? 'Критично' : 'Высокий'}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3.5 whitespace-nowrap font-mono text-zinc-600">
+                        {formatDate(task.deadlineDate)}
+                      </td>
+                      <td className="py-3 px-3.5 whitespace-nowrap text-right font-mono text-[11px] text-zinc-500">
+                        За {Math.abs(task.daysBeforeStart)} дн.
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
 
       {/* MODULE 2: BUDGET DISTRIBUTION */}
       {activeModule === 'budget' && (
-        <div className="glass-panel p-6 rounded-3xl space-y-5 animate-fade-in">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+        <div className="card-surface overflow-hidden">
+          <div className="p-4 border-b border-zinc-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-50/50">
             <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Wallet className="w-4 h-4 text-indigo-400" />
-                Оптимальное процентное распределение бюджета ({formatCurrency(activeEvent.totalBudgetLimit)})
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Отраслевые бенчмарки распределения средств для формата «{activeEvent.type}»
+              <h2 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
+                <Wallet className="w-3.5 h-3.5 text-zinc-700" />
+                Расчет сметы по нормативам (лимит: <span className="font-mono">{formatCurrency(activeEvent.totalBudgetLimit)}</span>)
+              </h2>
+              <p className="text-xs text-zinc-500 mt-0.5">
+                Отраслевые бенчмарки и целевые доли расходов для формата «{activeEvent.type}»
               </p>
             </div>
 
             <button
               onClick={handleApplyBudgetDistribution}
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/30 transition flex items-center gap-2 shrink-0 self-start sm:self-auto"
+              className="btn-primary h-8 shrink-0"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Применить распределение к смете</span>
+              <span>Заполнить смету</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {blueprint.recommendedBudget.map((item, idx) => (
-              <div
-                key={idx}
-                className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2 hover:border-slate-700 transition"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white">{item.category}</span>
-                  <div className="text-right">
-                    <span className="text-xs font-extrabold text-white font-mono">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-zinc-50/80 border-b border-zinc-200 text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
+                  <th className="py-2.5 px-3.5">Статья затрат</th>
+                  <th className="py-2.5 px-3.5 text-right w-24">Доля (%)</th>
+                  <th className="py-2.5 px-3.5 text-right w-36">Расчетная сумма (₽)</th>
+                  <th className="py-2.5 px-3.5 w-44">Распределение</th>
+                  <th className="py-2.5 px-3.5">Обоснование норматива</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-200 text-xs">
+                {blueprint.recommendedBudget.map((item, idx) => (
+                  <tr key={idx} className="hover:bg-zinc-50/50 transition-colors">
+                    <td className="py-3 px-3.5 font-medium text-zinc-900">
+                      {item.category}
+                    </td>
+                    <td className="py-3 px-3.5 text-right font-mono text-zinc-900 tabular-nums">
+                      {item.percentage}%
+                    </td>
+                    <td className="py-3 px-3.5 text-right font-mono font-medium text-zinc-900 tabular-nums">
                       {formatCurrency(item.amount)}
-                    </span>
-                    <span className="text-xs text-indigo-400 font-bold ml-1.5 font-mono">
-                      ({item.percentage}%)
-                    </span>
-                  </div>
-                </div>
-
-                <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-gradient-to-r from-indigo-500 to-emerald-400 rounded-full"
-                    style={{ width: `${item.percentage}%` }}
-                  />
-                </div>
-
-                <p className="text-[11px] text-slate-400 leading-relaxed">
-                  {item.rationale}
-                </p>
-              </div>
-            ))}
+                    </td>
+                    <td className="py-3 px-3.5">
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-zinc-900 rounded-full"
+                            style={{ width: `${Math.min(100, item.percentage * 2)}%` }}
+                          />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-3.5 text-[11px] text-zinc-500 leading-relaxed">
+                      {item.rationale}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
 
       {/* MODULE 3: RISK AUDIT */}
       {activeModule === 'risks' && (
-        <div className="glass-panel p-6 rounded-3xl space-y-5 animate-fade-in">
-          <div className="border-b border-slate-800 pb-3">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <ShieldAlert className="w-4 h-4 text-indigo-400" />
-              Аудит уязвимостей и рисков проекта
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Автоматический анализ текущих метрик готовности, дедлайнов и бюджета
+        <div className="card-surface overflow-hidden">
+          <div className="p-4 border-b border-zinc-200 bg-zinc-50/50">
+            <h2 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
+              <ShieldAlert className="w-3.5 h-3.5 text-zinc-700" />
+              Диагностика рисков и узких мест проекта
+            </h2>
+            <p className="text-xs text-zinc-500 mt-0.5">
+              Автоматический инженерный аудит метрик готовности, соблюдения дедлайнов и структуры бюджета
             </p>
           </div>
 
-          <div className="space-y-3.5">
+          <div className="divide-y divide-zinc-200">
             {blueprint.detectedRisks.map(risk => (
-              <div
-                key={risk.id}
-                className={`p-4 rounded-2xl border space-y-2 ${
-                  risk.severity === 'critical'
-                    ? 'bg-rose-950/25 border-rose-500/40'
-                    : risk.severity === 'high'
-                    ? 'bg-amber-950/25 border-amber-500/40'
-                    : 'bg-slate-900/80 border-slate-800'
-                }`}
-              >
+              <div key={risk.id} className="p-4 space-y-2 hover:bg-zinc-50/30 transition-colors">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <AlertTriangle
-                      className={`w-4 h-4 ${
+                      className={`w-4 h-4 shrink-0 ${
                         risk.severity === 'critical'
-                          ? 'text-rose-400'
+                          ? 'text-red-600'
                           : risk.severity === 'high'
-                          ? 'text-amber-400'
-                          : 'text-indigo-400'
+                          ? 'text-amber-600'
+                          : 'text-zinc-500'
                       }`}
                     />
-                    <h4 className="text-xs font-bold text-white">{risk.title}</h4>
+                    <h3 className="text-xs font-semibold text-zinc-900">{risk.title}</h3>
                   </div>
+
                   <span
-                    className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                    className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium border ${
                       risk.severity === 'critical'
-                        ? 'bg-rose-500/20 text-rose-300'
+                        ? 'bg-red-50 text-red-700 border-red-200/70'
                         : risk.severity === 'high'
-                        ? 'bg-amber-500/20 text-amber-300'
-                        : 'bg-emerald-500/20 text-emerald-300'
+                        ? 'bg-amber-50 text-amber-700 border-amber-200/70'
+                        : 'bg-emerald-50 text-emerald-700 border-emerald-200/70'
                     }`}
                   >
-                    {risk.severity === 'critical' ? 'Критично' : risk.severity === 'high' ? 'Высокий риск' : 'В норме'}
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        risk.severity === 'critical'
+                          ? 'bg-red-500'
+                          : risk.severity === 'high'
+                          ? 'bg-amber-500'
+                          : 'bg-emerald-500'
+                      }`}
+                    />
+                    {risk.severity === 'critical'
+                      ? 'Критично'
+                      : risk.severity === 'high'
+                      ? 'Предупреждение'
+                      : 'Норма'}
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p className="text-xs text-zinc-600 leading-relaxed pl-6">
                   {risk.description}
                 </p>
 
-                <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80 text-xs">
-                  <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-wider block mb-1">
-                    Рекомендация ИИ-Ассистента:
+                <div className="ml-6 bg-zinc-50 border border-zinc-200 rounded p-2.5 text-xs text-zinc-700">
+                  <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider block mb-0.5">
+                    Инженерная рекомендация:
                   </span>
-                  <span className="text-slate-200">{risk.recommendation}</span>
+                  <span>{risk.recommendation}</span>
                 </div>
               </div>
             ))}
@@ -389,38 +487,50 @@ export const AiAssistantView: React.FC = () => {
 
       {/* MODULE 4: EVENT TIMING / SCHEDULE */}
       {activeModule === 'schedule' && (
-        <div className="glass-panel p-6 rounded-3xl space-y-5 animate-fade-in">
-          <div className="border-b border-slate-800 pb-3">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Clock className="w-4 h-4 text-indigo-400" />
-              Тайминг и поминутная программа дня мероприятия
-            </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Эталонное расписание для «{activeEvent.title}»
+        <div className="card-surface overflow-hidden">
+          <div className="p-4 border-b border-zinc-200 bg-zinc-50/50">
+            <h2 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider flex items-center gap-2">
+              <Clock className="w-3.5 h-3.5 text-zinc-700" />
+              Генератор тайминга площадки («{activeEvent.title}»)
+            </h2>
+            <p className="text-xs text-zinc-500 mt-0.5">
+              Хронологическая поминутная программа и распределение потоков по локациям
             </p>
           </div>
 
-          <div className="space-y-3">
-            {blueprint.eventSchedule.map((slot, idx) => (
-              <div
-                key={idx}
-                className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-slate-700 transition"
-              >
-                <div className="flex items-start sm:items-center gap-3">
-                  <div className="px-2.5 py-1.5 rounded-xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 font-mono font-bold text-xs shrink-0">
-                    {slot.time}
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-white">{slot.title}</h4>
-                    <p className="text-[11px] text-slate-400 mt-0.5">{slot.description}</p>
-                  </div>
-                </div>
-
-                <span className="px-2.5 py-1 rounded-lg bg-slate-800 text-[10px] font-semibold text-slate-300 border border-slate-700 shrink-0 self-end sm:self-center">
-                  📍 {slot.stage}
-                </span>
-              </div>
-            ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-zinc-50/80 border-b border-zinc-200 text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
+                  <th className="py-2.5 px-3.5 w-32">Время</th>
+                  <th className="py-2.5 px-3.5">Блок программы</th>
+                  <th className="py-2.5 px-3.5 w-44">Сцена / Локация</th>
+                  <th className="py-2.5 px-3.5">Описание регламента</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-200 text-xs">
+                {blueprint.eventSchedule.map((slot, idx) => (
+                  <tr key={idx} className="hover:bg-zinc-50/50 transition-colors">
+                    <td className="py-3 px-3.5 whitespace-nowrap font-mono font-medium text-zinc-900">
+                      <span className="px-1.5 py-0.5 bg-zinc-100 border border-zinc-200 rounded">
+                        {slot.time}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3.5 font-medium text-zinc-900">
+                      {slot.title}
+                    </td>
+                    <td className="py-3 px-3.5 whitespace-nowrap">
+                      <span className="inline-flex items-center gap-1 font-mono text-[11px] text-zinc-600 bg-zinc-50 border border-zinc-200 px-1.5 py-0.5 rounded">
+                        {slot.stage}
+                      </span>
+                    </td>
+                    <td className="py-3 px-3.5 text-[11px] text-zinc-500 leading-relaxed">
+                      {slot.description}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

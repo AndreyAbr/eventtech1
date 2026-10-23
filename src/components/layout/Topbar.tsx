@@ -1,25 +1,32 @@
 import React from 'react';
 import {
-  Calendar,
   RotateCcw,
-  Shield,
-  Users2,
-  UserCheck,
   CheckCircle2,
   AlertCircle,
   Info,
   AlertTriangle,
   X,
-  Sparkles,
-  ExternalLink
+  ChevronRight
 } from 'lucide-react';
 import { useEventContext } from '../../context/EventContext';
 import { formatDate } from '../../utils/analytics';
-import { UserRole } from '../../types/event';
+import { UserRole, ActiveTab } from '../../types/event';
+
+const TAB_NAMES: Record<ActiveTab, string> = {
+  dashboard: 'Дашборд',
+  settings: 'Параметры ивента',
+  tasks: 'План и задачи',
+  budget: 'Бюджет и смета',
+  guests: 'Гости и QR-билеты',
+  team: 'Команда и подрядчики',
+  calendar: 'Календарь',
+  ai_assistant: 'Автоматизация и аудит'
+};
 
 export const Topbar: React.FC = () => {
   const {
     activeEvent,
+    activeTab,
     metrics,
     currentUserRole,
     setCurrentUserRole,
@@ -39,128 +46,122 @@ export const Topbar: React.FC = () => {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'success':
-        return <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />;
+        return <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />;
       case 'warning':
-        return <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0" />;
+        return <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />;
       case 'error':
-        return <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />;
+        return <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />;
       default:
-        return <Info className="w-5 h-5 text-indigo-400 shrink-0" />;
+        return <Info className="w-4 h-4 text-zinc-300 shrink-0" />;
     }
   };
 
   return (
     <>
-      <header className="h-16 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-6 flex items-center justify-between sticky top-0 z-30">
-        {/* Left: Event Summary & Readiness Progress */}
-        <div className="flex items-center gap-6">
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-bold text-white truncate max-w-[280px] md:max-w-[420px]" title={activeEvent?.title}>
-                {activeEvent?.title || 'Мероприятие не выбрано'}
-              </h2>
-              {activeEvent?.type && (
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 shrink-0">
-                  {activeEvent.type}
-                </span>
-              )}
-            </div>
+      <header className="h-12 bg-white border-b border-zinc-200 px-6 flex items-center justify-between sticky top-0 z-30 select-none">
+        {/* Left: Breadcrumbs & Meta */}
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="text-xs font-medium text-zinc-400">
+            Мероприятия
+          </span>
+          <ChevronRight className="w-3.5 h-3.5 text-zinc-300 shrink-0" />
+          <span className="text-xs font-medium text-zinc-700 truncate max-w-[200px] sm:max-w-[280px]" title={activeEvent?.title}>
+            {activeEvent?.title || 'Без названия'}
+          </span>
+          <ChevronRight className="w-3.5 h-3.5 text-zinc-300 shrink-0" />
+          <span className="text-xs font-semibold text-zinc-900 shrink-0">
+            {TAB_NAMES[activeTab] || 'Раздел'}
+          </span>
 
-            <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-0.5">
-              <span className="flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                {activeEvent?.startDate ? formatDate(activeEvent.startDate) : '—'}
+          {activeEvent && (
+            <div className="hidden lg:flex items-center gap-1.5 ml-2 font-mono text-[11px] text-zinc-400">
+              <span>•</span>
+              <span className="px-1.5 py-0.2 rounded bg-zinc-100 text-zinc-600 border border-zinc-200">
+                {activeEvent.type}
               </span>
               <span>•</span>
-              <span>Организатор: <strong className="text-slate-300 font-medium">{activeEvent?.leadOrganizer || '—'}</strong></span>
+              <span>{formatDate(activeEvent.startDate)}</span>
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* Readiness Bar */}
-          <div className="hidden xl:flex items-center gap-3 pl-6 border-l border-slate-800">
-            <div className="text-right">
-              <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Готовность</div>
-              <div className="text-xs font-bold text-white font-mono">{metrics.readinessPercent}%</div>
-            </div>
-            <div className="w-24 h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700/60">
+        {/* Right: Readiness, Role Switcher & Reset */}
+        <div className="flex items-center gap-3 shrink-0">
+          {/* Readiness Meter */}
+          <div className="hidden md:flex items-center gap-2 pr-3 border-r border-zinc-200">
+            <span className="text-xs font-mono text-zinc-600 tabular-nums">
+              Готовность {metrics.readinessPercent}%
+            </span>
+            <div className="w-16 h-1.5 bg-zinc-100 rounded-full overflow-hidden border border-zinc-200">
               <div
-                className="h-full bg-gradient-to-r from-indigo-500 to-emerald-400 rounded-full transition-all duration-500"
+                className="h-full bg-zinc-900 transition-all duration-300"
                 style={{ width: `${metrics.readinessPercent}%` }}
               />
             </div>
           </div>
-        </div>
 
-        {/* Right: Role Switcher & Reset Button */}
-        <div className="flex items-center gap-3">
-          {/* Role Switcher */}
-          <div className="flex items-center bg-slate-950/80 border border-slate-800 p-1 rounded-xl shadow-inner">
+          {/* Segmented Role Switcher */}
+          <div className="flex items-center bg-zinc-100 p-0.5 rounded-md border border-zinc-200/80">
             <button
               onClick={() => handleRoleChange('admin')}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
+              className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${
                 currentUserRole === 'admin'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-white text-zinc-900 shadow-sm'
+                  : 'text-zinc-600 hover:text-zinc-900'
               }`}
-              title="Полные права: редактирование, бюджет, удаление"
             >
-              <Shield className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Администратор</span>
+              Админ
             </button>
-
             <button
               onClick={() => handleRoleChange('team')}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
+              className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${
                 currentUserRole === 'team'
-                  ? 'bg-indigo-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-white text-zinc-900 shadow-sm'
+                  : 'text-zinc-600 hover:text-zinc-900'
               }`}
-              title="Права команды: просмотр, задачи, комментарии"
             >
-              <Users2 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Команда</span>
+              Команда
             </button>
-
             <button
               onClick={() => handleRoleChange('guest')}
-              className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition ${
+              className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${
                 currentUserRole === 'guest'
-                  ? 'bg-emerald-600 text-white shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-white text-zinc-900 shadow-sm'
+                  : 'text-zinc-600 hover:text-zinc-900'
               }`}
-              title="Гостевой режим: регистрация, билет с QR-кодом, опросы"
             >
-              <UserCheck className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Гость (Вид)</span>
+              Гость
             </button>
           </div>
 
-          {/* Reset Demo Data Button */}
+          {/* Reset Demo Button */}
           <button
             onClick={resetDemoData}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700/80 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold transition shadow-sm"
-            title="Восстановить эталонные демо-данные хакатона"
+            className="btn-secondary h-7 px-2.5 text-xs text-zinc-600 hover:text-zinc-900"
+            title="Сбросить к исходным демонстрационным данным"
           >
-            <RotateCcw className="w-3.5 h-3.5 text-indigo-400" />
-            <span className="hidden md:inline">Сброс данных</span>
+            <RotateCcw className="w-3.5 h-3.5 text-zinc-400" />
+            <span className="hidden sm:inline">Сбросить демо</span>
           </button>
         </div>
       </header>
 
-      {/* Floating Toast Notification Stack */}
-      <div className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm pointer-events-none">
+      {/* Toast Notifications */}
+      <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm pointer-events-none">
         {notifications.map(toast => (
           <div
             key={toast.id}
-            className="pointer-events-auto flex items-start gap-3 p-3.5 rounded-xl bg-slate-900/95 border border-slate-700/80 shadow-2xl backdrop-blur-md text-xs text-slate-200 animate-slide-up transition"
+            className="pointer-events-auto bg-zinc-900 text-white text-xs px-3.5 py-2.5 rounded-md shadow-md border border-zinc-800 flex items-center justify-between gap-3 animate-fade-in"
           >
-            {getNotificationIcon(toast.type)}
-            <div className="flex-1 leading-snug">{toast.message}</div>
+            <div className="flex items-center gap-2">
+              {getNotificationIcon(toast.type)}
+              <span className="leading-snug">{toast.message}</span>
+            </div>
             <button
               onClick={() => dismissNotification(toast.id)}
-              className="text-slate-500 hover:text-slate-300 transition -mt-0.5"
+              className="text-zinc-400 hover:text-white transition-colors"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         ))}

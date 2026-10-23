@@ -1,30 +1,22 @@
 import React from 'react';
 import {
-  CheckCircle2,
-  Clock,
-  Users,
-  Wallet,
-  Star,
   AlertTriangle,
-  TrendingUp,
   ArrowRight,
-  PlusCircle,
+  Check,
+  Plus,
   FileSpreadsheet,
-  Sparkles,
   QrCode,
-  Calendar
+  Sparkles
 } from 'lucide-react';
 import { useEventContext } from '../../context/EventContext';
 import { formatCurrency, formatDate, isTaskOverdue } from '../../utils/analytics';
-import { exportBudgetToCSV, exportGuestsToCSV } from '../../utils/csvExport';
+import { exportBudgetToCSV } from '../../utils/csvExport';
 
 export const DashboardView: React.FC = () => {
   const {
     activeEvent,
     activeTasks,
     activeBudget,
-    activeGuests,
-    activeSurveys,
     metrics,
     setActiveTab,
     updateTask
@@ -32,13 +24,13 @@ export const DashboardView: React.FC = () => {
 
   if (!activeEvent) {
     return (
-      <div className="p-8 text-center text-slate-400">
-        Мероприятие не выбрано. Выберите или создайте новое в меню слева.
+      <div className="p-8 text-center text-xs text-zinc-500">
+        Мероприятие не выбрано. Выберите или создайте проект в меню слева.
       </div>
     );
   }
 
-  // Filter urgent & overdue tasks
+  // Urgent & overdue tasks
   const urgentTasks = activeTasks
     .filter(t => t.status !== 'done')
     .sort((a, b) => {
@@ -63,39 +55,61 @@ export const DashboardView: React.FC = () => {
   const categoryList = Object.entries(categoryExpenses).sort((a, b) => b[1].actual - a[1].actual);
 
   return (
-    <div className="space-y-6 pb-12 animate-fade-in">
-      {/* Critical Alert Banner */}
+    <div className="space-y-5">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-lg font-semibold text-zinc-900 tracking-tight">
+            Сводка проекта
+          </h1>
+          <p className="text-xs text-zinc-500">
+            Ключевые метрики готовности, дедлайны и финансовый баланс
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => exportBudgetToCSV(activeBudget, activeEvent.title)}
+            className="btn-secondary"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-zinc-500" />
+            Экспорт сметы
+          </button>
+          <button
+            onClick={() => setActiveTab('tasks')}
+            className="btn-primary"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Новая задача
+          </button>
+        </div>
+      </div>
+
+      {/* Warning Banner */}
       {(metrics.isOverTotalLimit || metrics.criticalOverdueTasksCount > 0) && (
-        <div className="p-4 rounded-2xl bg-rose-950/40 border border-rose-500/30 backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg shadow-rose-950/20">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-rose-500/20 text-rose-400 border border-rose-500/40 shrink-0">
-              <AlertTriangle className="w-5 h-5 animate-pulse" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-rose-200">
-                Требуется внимание организатора!
-              </h4>
-              <p className="text-xs text-rose-300/80 mt-0.5">
-                {metrics.isOverTotalLimit && (
-                  <span>
-                    Зафиксирован перерасход бюджета на{' '}
-                    <strong className="text-white font-mono">{formatCurrency(metrics.budgetOverrunAmount)}</strong>.
-                  </span>
-                )}
-                {metrics.isOverTotalLimit && metrics.criticalOverdueTasksCount > 0 && ' • '}
-                {metrics.criticalOverdueTasksCount > 0 && (
-                  <span>
-                    Есть <strong className="text-white font-bold">{metrics.criticalOverdueTasksCount}</strong> критических просроченных задач!
-                  </span>
-                )}
-              </p>
-            </div>
+        <div className="bg-red-50/80 border border-red-200 rounded-md px-3.5 py-2 text-xs text-red-800 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+            <span>
+              {metrics.isOverTotalLimit && (
+                <span>
+                  Перерасход сметы: <strong className="font-mono">{formatCurrency(metrics.budgetOverrunAmount)}</strong>.
+                </span>
+              )}
+              {metrics.isOverTotalLimit && metrics.criticalOverdueTasksCount > 0 && ' '}
+              {metrics.criticalOverdueTasksCount > 0 && (
+                <span>
+                  Обнаружено <strong className="font-mono">{metrics.criticalOverdueTasksCount}</strong> критических просроченных задач.
+                </span>
+              )}
+            </span>
           </div>
-          <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+
+          <div className="flex items-center gap-2 shrink-0">
             {metrics.isOverTotalLimit && (
               <button
                 onClick={() => setActiveTab('budget')}
-                className="px-3 py-1.5 rounded-lg bg-rose-600/30 hover:bg-rose-600/50 text-rose-200 border border-rose-500/40 text-xs font-semibold transition"
+                className="text-xs font-medium text-red-700 hover:text-red-900 underline"
               >
                 Ревизия сметы
               </button>
@@ -103,174 +117,114 @@ export const DashboardView: React.FC = () => {
             {metrics.criticalOverdueTasksCount > 0 && (
               <button
                 onClick={() => setActiveTab('tasks')}
-                className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold shadow-md transition"
+                className="text-xs font-medium text-red-700 hover:text-red-900 underline"
               >
-                Открыть задачи
+                К задачам →
               </button>
             )}
           </div>
         </div>
       )}
 
-      {/* Top Row: 4 KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Readiness */}
-        <div className="glass-panel p-5 rounded-2xl relative overflow-hidden group hover:border-indigo-500/40 transition">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Готовность ивента</span>
-            <div className="p-2 rounded-xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
+      {/* Horizontal KPI Metric Bar */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 bg-white border border-zinc-200 rounded-lg divide-y sm:divide-y-0 sm:divide-x divide-zinc-200 shadow-sm">
+        {/* Metric 1 */}
+        <div className="p-4">
+          <div className="text-xs font-medium text-zinc-500">
+            Готовность ивента
           </div>
-          <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-3xl font-extrabold text-white font-mono tracking-tight">
-              {metrics.readinessPercent}%
-            </span>
-            <span className="text-xs text-slate-400">
-              ({metrics.completedTasksCount} из {metrics.totalTasksCount} задач)
-            </span>
+          <div className="text-2xl font-semibold text-zinc-900 font-mono tabular-nums mt-1">
+            {metrics.readinessPercent}%
           </div>
-          <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-3 border border-slate-700/50">
-            <div
-              className="h-full bg-gradient-to-r from-indigo-500 to-emerald-400 rounded-full transition-all duration-700"
-              style={{ width: `${metrics.readinessPercent}%` }}
-            />
-          </div>
-          <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-800/80">
-            <span className="text-slate-400">Просроченные задачи:</span>
+          <div className="text-xs text-zinc-500 mt-1.5 flex items-center justify-between">
+            <span>{metrics.completedTasksCount} из {metrics.totalTasksCount} задач</span>
             {metrics.overdueTasksCount > 0 ? (
-              <span className="inline-flex items-center gap-1 font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/20">
-                <Clock className="w-3 h-3" />
-                {metrics.overdueTasksCount} шт.
+              <span className="text-red-600 font-medium font-mono text-[11px]">
+                {metrics.overdueTasksCount} просрочено
               </span>
             ) : (
-              <span className="text-emerald-400 font-medium">Нет просрочек</span>
+              <span className="text-emerald-600 font-medium text-[11px]">В графике</span>
             )}
           </div>
         </div>
 
-        {/* Card 2: Attendees & Conversion */}
-        <div className="glass-panel p-5 rounded-2xl relative overflow-hidden group hover:border-emerald-500/40 transition">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Участники & Чек-ин</span>
-            <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-              <Users className="w-4 h-4" />
-            </div>
+        {/* Metric 2 */}
+        <div className="p-4">
+          <div className="text-xs font-medium text-zinc-500">
+            Участники & Чек-ин
           </div>
-          <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-3xl font-extrabold text-white font-mono tracking-tight">
-              {metrics.registeredCount}
-            </span>
-            <span className="text-xs text-slate-400">
-              / план {activeEvent.plannedHeadcount} чел.
-            </span>
+          <div className="text-2xl font-semibold text-zinc-900 font-mono tabular-nums mt-1">
+            {metrics.registeredCount}
           </div>
-          <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-3 border border-slate-700/50">
-            <div
-              className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-700"
-              style={{ width: `${Math.min(100, Math.round((metrics.registeredCount / Math.max(1, activeEvent.plannedHeadcount)) * 100))}%` }}
-            />
-          </div>
-          <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-800/80">
-            <span className="text-slate-400">Чек-ин на входе:</span>
-            <span className="font-semibold text-emerald-300 font-mono">
-              {metrics.checkedInCount} чел. ({metrics.attendanceRate}%)
+          <div className="text-xs text-zinc-500 mt-1.5 flex items-center justify-between">
+            <span>План: {activeEvent.plannedHeadcount} чел.</span>
+            <span className="font-mono text-[11px] text-zinc-700 font-medium">
+              Чек-ин: {metrics.checkedInCount} ({metrics.attendanceRate}%)
             </span>
           </div>
         </div>
 
-        {/* Card 3: Budget & Cost per attendee */}
-        <div className="glass-panel p-5 rounded-2xl relative overflow-hidden group hover:border-amber-500/40 transition">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Бюджет (Факт / План)</span>
-            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
-              <Wallet className="w-4 h-4" />
-            </div>
+        {/* Metric 3 */}
+        <div className="p-4">
+          <div className="text-xs font-medium text-zinc-500">
+            Фактические расходы
           </div>
-          <div className="mb-2">
-            <div className="text-2xl font-extrabold text-white font-mono tracking-tight">
-              {formatCurrency(metrics.totalActualBudget)}
-            </div>
-            <div className="text-xs text-slate-400 mt-0.5">
-              лимит: {formatCurrency(activeEvent.totalBudgetLimit)}
-            </div>
+          <div className={`text-2xl font-semibold font-mono tabular-nums mt-1 ${
+            metrics.isOverTotalLimit ? 'text-red-600' : 'text-zinc-900'
+          }`}>
+            {formatCurrency(metrics.totalActualBudget)}
           </div>
-          <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-3 border border-slate-700/50">
-            <div
-              className={`h-full rounded-full transition-all duration-700 ${
-                metrics.isOverTotalLimit ? 'bg-rose-500' : 'bg-gradient-to-r from-amber-500 to-emerald-400'
-              }`}
-              style={{ width: `${Math.min(100, Math.round((metrics.totalActualBudget / Math.max(1, activeEvent.totalBudgetLimit)) * 100))}%` }}
-            />
-          </div>
-          <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-800/80">
-            <span className="text-slate-400">Ср. стоимость гостя:</span>
-            <span className="font-mono text-slate-200 font-semibold">
-              {formatCurrency(metrics.costPerAttendee)}
+          <div className="text-xs text-zinc-500 mt-1.5 flex items-center justify-between">
+            <span>Лимит: {formatCurrency(activeEvent.totalBudgetLimit)}</span>
+            <span className="font-mono text-[11px] text-zinc-700">
+              {formatCurrency(metrics.costPerAttendee)}/гость
             </span>
           </div>
         </div>
 
-        {/* Card 4: Feedback / NPS */}
-        <div className="glass-panel p-5 rounded-2xl relative overflow-hidden group hover:border-purple-500/40 transition">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Оценка гостей (NPS)</span>
-            <div className="p-2 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30">
-              <Star className="w-4 h-4" />
-            </div>
+        {/* Metric 4 */}
+        <div className="p-4">
+          <div className="text-xs font-medium text-zinc-500">
+            Оценка гостей (NPS)
           </div>
-          <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-3xl font-extrabold text-white font-mono tracking-tight">
-              {metrics.averageRating > 0 ? metrics.averageRating : '—'}
-            </span>
-            <span className="text-xs text-slate-400">/ 5.0 звезд</span>
+          <div className="text-2xl font-semibold text-zinc-900 font-mono tabular-nums mt-1">
+            {metrics.averageRating > 0 ? `${metrics.averageRating} / 5.0` : '—'}
           </div>
-          <div className="flex items-center gap-1 mb-3">
-            {[1, 2, 3, 4, 5].map(star => (
-              <Star
-                key={star}
-                className={`w-4 h-4 ${
-                  star <= Math.round(metrics.averageRating)
-                    ? 'text-amber-400 fill-amber-400'
-                    : 'text-slate-700'
-                }`}
-              />
-            ))}
-          </div>
-          <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-800/80">
-            <span className="text-slate-400">Получено отзывов:</span>
-            <span className="font-semibold text-purple-300 font-mono">
-              {metrics.surveysCount} ответов
-            </span>
+          <div className="text-xs text-zinc-500 mt-1.5 flex items-center justify-between">
+            <span>{metrics.surveysCount} ответов</span>
+            <button
+              onClick={() => setActiveTab('guests')}
+              className="text-zinc-600 hover:text-zinc-900 text-[11px] font-medium"
+            >
+              Отзывы →
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Middle Grid: Tasks Overview & Budget Breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left (2 cols): Urgent & Overdue Tasks */}
-        <div className="lg:col-span-2 glass-panel p-5 rounded-2xl flex flex-col">
-          <div className="flex items-center justify-between mb-4">
+      {/* 2-Column Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Left (2 cols): Urgent and Overdue Tasks */}
+        <div className="lg:col-span-2 card-surface p-4 flex flex-col">
+          <div className="flex items-center justify-between pb-3 border-b border-zinc-200">
             <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Clock className="w-4 h-4 text-indigo-400" />
-                Срочные и просроченные задачи
-              </h3>
-              <p className="text-xs text-slate-400">Задачи, требующие первоочередного выполнения</p>
+              <h2 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider">
+                Требуют внимания (Дедлайны и задачи)
+              </h2>
             </div>
             <button
               onClick={() => setActiveTab('tasks')}
-              className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition"
+              className="text-xs text-zinc-500 hover:text-zinc-900 font-medium flex items-center gap-1"
             >
               Все задачи ({activeTasks.length})
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3 h-3" />
             </button>
           </div>
 
-          <div className="space-y-2.5 flex-1">
+          <div className="divide-y divide-zinc-200 flex-1">
             {urgentTasks.length === 0 ? (
-              <div className="p-8 text-center text-slate-500 text-xs">
-                Все задачи завершены! Отличная работа команды.
+              <div className="py-8 text-center text-xs text-zinc-400">
+                Нет нерешенных задач
               </div>
             ) : (
               urgentTasks.map(task => {
@@ -278,59 +232,44 @@ export const DashboardView: React.FC = () => {
                 return (
                   <div
                     key={task.id}
-                    className={`p-3.5 rounded-xl border transition flex items-start justify-between gap-3 ${
-                      isOverdue
-                        ? 'bg-rose-950/20 border-rose-500/30 hover:border-rose-500/50'
-                        : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
-                    }`}
+                    className="py-2.5 flex items-center justify-between gap-3 text-xs hover:bg-zinc-50/60 px-1 rounded transition-colors"
                   >
-                    <div className="flex items-start gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
                       <button
                         onClick={() => updateTask({ ...task, status: 'done' })}
-                        title="Отметить как выполненное"
-                        className="mt-0.5 w-4 h-4 rounded border border-slate-600 hover:border-emerald-400 hover:bg-emerald-500/20 flex items-center justify-center transition shrink-0"
+                        className="w-4 h-4 rounded border border-zinc-300 hover:border-zinc-900 flex items-center justify-center transition-colors shrink-0"
+                        title="Отметить выполненной"
                       >
-                        <CheckCircle2 className="w-3 h-3 text-transparent hover:text-emerald-400" />
+                        <Check className="w-3 h-3 text-transparent hover:text-zinc-900" />
                       </button>
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="text-xs font-semibold text-slate-200">
-                            {task.title}
-                          </h4>
-                          <span
-                            className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase ${
-                              task.priority === 'critical'
-                                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                                : task.priority === 'high'
-                                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                                : 'bg-slate-700 text-slate-300'
-                            }`}
-                          >
-                            {task.priority === 'critical' ? 'Критично' : task.priority === 'high' ? 'Высокий' : 'Средний'}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-3 text-[11px] text-slate-400 mt-1">
-                          <span className={isOverdue ? 'text-rose-400 font-bold flex items-center gap-1' : ''}>
-                            {isOverdue && <AlertTriangle className="w-3 h-3" />}
-                            Дедлайн: {formatDate(task.deadline)}
-                          </span>
-                          <span>•</span>
-                          <span>{task.comments.length} комментариев</span>
-                        </div>
+                      <div className="truncate">
+                        <span className="font-medium text-zinc-900 truncate block">
+                          {task.title}
+                        </span>
                       </div>
                     </div>
 
-                    <span
-                      className={`text-[10px] font-semibold px-2 py-1 rounded-md shrink-0 ${
-                        task.status === 'in_progress'
-                          ? 'bg-indigo-500/20 text-indigo-300'
-                          : task.status === 'review'
-                          ? 'bg-purple-500/20 text-purple-300'
-                          : 'bg-slate-800 text-slate-400'
-                      }`}
-                    >
-                      {task.status === 'in_progress' ? 'В работе' : task.status === 'review' ? 'Проверка' : 'К исполнению'}
-                    </span>
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      {isOverdue ? (
+                        <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-200 font-medium">
+                          {formatDate(task.deadline)}
+                        </span>
+                      ) : (
+                        <span className="font-mono text-[11px] text-zinc-500">
+                          {formatDate(task.deadline)}
+                        </span>
+                      )}
+
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                        task.priority === 'critical'
+                          ? 'bg-red-50 text-red-700 border border-red-200'
+                          : task.priority === 'high'
+                          ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                          : 'bg-zinc-100 text-zinc-600'
+                      }`}>
+                        {task.priority === 'critical' ? 'крит.' : task.priority === 'high' ? 'высок.' : 'средн.'}
+                      </span>
+                    </div>
                   </div>
                 );
               })
@@ -338,51 +277,49 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        {/* Right (1 col): Budget Category Breakdown */}
-        <div className="glass-panel p-5 rounded-2xl flex flex-col">
-          <div className="flex items-center justify-between mb-4">
+        {/* Right (1 col): Budget Execution by Categories */}
+        <div className="card-surface p-4 flex flex-col">
+          <div className="flex items-center justify-between pb-3 border-b border-zinc-200">
             <div>
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <Wallet className="w-4 h-4 text-amber-400" />
-                Расходы по категориям
-              </h3>
-              <p className="text-xs text-slate-400">Фактическое освоение сметы</p>
+              <h2 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider">
+                Исполнение сметы по статьям
+              </h2>
             </div>
             <button
               onClick={() => setActiveTab('budget')}
-              className="text-xs font-semibold text-amber-400 hover:text-amber-300 flex items-center gap-1 transition"
+              className="text-xs text-zinc-500 hover:text-zinc-900 font-medium flex items-center gap-1"
             >
               Смета
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-3 h-3" />
             </button>
           </div>
 
-          <div className="space-y-3.5 flex-1">
+          <div className="space-y-3 pt-3 flex-1">
             {categoryList.slice(0, 5).map(([category, amounts]) => {
               const pct = amounts.planned > 0 ? Math.round((amounts.actual / amounts.planned) * 100) : 100;
               const isOver = amounts.actual > amounts.planned && amounts.planned > 0;
               return (
                 <div key={category} className="space-y-1">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-slate-300 font-medium truncate max-w-[170px]" title={category}>
+                    <span className="text-zinc-700 font-medium truncate max-w-[150px]">
                       {category}
                     </span>
-                    <span className="font-mono text-slate-300">
+                    <span className="font-mono text-zinc-900 tabular-nums">
                       {formatCurrency(amounts.actual)}
                     </span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                  <div className="w-full h-1 bg-zinc-100 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full ${
-                        isOver ? 'bg-rose-500' : 'bg-indigo-500'
+                        isOver ? 'bg-red-600' : 'bg-zinc-900'
                       }`}
                       style={{ width: `${Math.min(100, pct)}%` }}
                     />
                   </div>
-                  <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+                  <div className="flex justify-between text-[11px] text-zinc-400 font-mono">
                     <span>План: {formatCurrency(amounts.planned)}</span>
-                    <span className={isOver ? 'text-rose-400 font-bold' : ''}>
-                      {isOver ? `Перерасход (+${formatCurrency(amounts.actual - amounts.planned)})` : `${pct}%`}
+                    <span className={isOver ? 'text-red-600 font-medium' : ''}>
+                      {isOver ? `+${formatCurrency(amounts.actual - amounts.planned)}` : `${pct}%`}
                     </span>
                   </div>
                 </div>
@@ -390,49 +327,38 @@ export const DashboardView: React.FC = () => {
             })}
           </div>
 
-          <div className="pt-4 border-t border-slate-800/80 mt-4 flex justify-between items-center text-xs">
-            <span className="text-slate-400">Всего фактически:</span>
-            <span className="font-bold text-white font-mono">{formatCurrency(metrics.totalActualBudget)}</span>
+          <div className="pt-3 border-t border-zinc-200 mt-2 flex justify-between items-center text-xs">
+            <span className="text-zinc-500">Всего затрачено:</span>
+            <span className="font-mono font-semibold text-zinc-900">
+              {formatCurrency(metrics.totalActualBudget)}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Bottom: Quick Actions Bar */}
-      <div className="glass-panel p-5 rounded-2xl">
-        <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">
-          Быстрые действия организатора
-        </h4>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      {/* Quick Access Bar */}
+      <div className="card-surface p-3.5 flex items-center justify-between gap-3 flex-wrap">
+        <span className="text-xs font-medium text-zinc-500">Быстрые действия:</span>
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={() => setActiveTab('guests')}
-            className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700/60 hover:border-indigo-500/40 text-xs font-semibold transition group shadow-sm"
+            className="btn-secondary"
           >
-            <QrCode className="w-4 h-4 text-indigo-400 group-hover:scale-110 transition-transform" />
-            <span>Регистрация гостя</span>
+            <QrCode className="w-3.5 h-3.5 text-zinc-500" />
+            Регистрация гостя
           </button>
-
-          <button
-            onClick={() => setActiveTab('tasks')}
-            className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700/60 hover:border-emerald-500/40 text-xs font-semibold transition group shadow-sm"
-          >
-            <PlusCircle className="w-4 h-4 text-emerald-400 group-hover:scale-110 transition-transform" />
-            <span>Добавить задачу</span>
-          </button>
-
           <button
             onClick={() => setActiveTab('ai_assistant')}
-            className="flex items-center gap-2.5 p-3 rounded-xl bg-indigo-950/40 hover:bg-indigo-900/40 text-indigo-200 border border-indigo-500/30 text-xs font-semibold transition group shadow-sm"
+            className="btn-secondary"
           >
-            <Sparkles className="w-4 h-4 text-indigo-400 group-hover:scale-110 transition-transform" />
-            <span>ИИ-Аудит рисков</span>
+            <Sparkles className="w-3.5 h-3.5 text-zinc-500" />
+            Аудит рисков
           </button>
-
           <button
-            onClick={() => exportBudgetToCSV(activeBudget, activeEvent.title)}
-            className="flex items-center gap-2.5 p-3 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700/60 hover:border-amber-500/40 text-xs font-semibold transition group shadow-sm"
+            onClick={() => setActiveTab('budget')}
+            className="btn-secondary"
           >
-            <FileSpreadsheet className="w-4 h-4 text-amber-400 group-hover:scale-110 transition-transform" />
-            <span>Экспорт сметы CSV</span>
+            Управление сметой
           </button>
         </div>
       </div>
