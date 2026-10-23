@@ -23,7 +23,7 @@ import {
 } from '../data/seedData';
 import { calculateEventMetrics, EventMetrics } from '../utils/analytics';
 
-const STORAGE_KEY = 'eventtech_store_v1';
+const STORAGE_KEY = 'eventtech_store_v2';
 
 interface StoredData {
   events: EventEntity[];

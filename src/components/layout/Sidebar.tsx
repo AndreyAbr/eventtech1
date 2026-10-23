@@ -114,7 +114,7 @@ export const Sidebar: React.FC = () => {
     { id: 'calendar', label: 'Календарь', icon: Calendar },
     {
       id: 'ai_assistant',
-      label: 'Автоматизация и аудит',
+      label: 'Ассистент и аудит',
       icon: Sparkles,
       hideInGuest: true,
       badge: (
@@ -201,9 +201,9 @@ export const Sidebar: React.FC = () => {
                     : 'text-zinc-600 hover:bg-zinc-200/40 hover:text-zinc-900'
                 }`}
               >
-                <div className="flex items-center gap-2.5 truncate">
+                <div className="flex items-center gap-2.5 min-w-0">
                   <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-zinc-900' : 'text-zinc-500'}`} />
-                  <span className="truncate">{item.label}</span>
+                  <span className="whitespace-nowrap">{item.label}</span>
                 </div>
                 {item.badge && <span className="ml-2 shrink-0">{item.badge}</span>}
               </button>

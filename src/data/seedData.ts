@@ -136,7 +136,7 @@ export const INITIAL_CONTRACTORS: ContractorItem[] = [
     contactPerson: 'Ольга Николаева',
     phone: '+7 (495) 654-32-10',
     email: 'catering@gastronom-event.ru',
-    cost: 520000,
+    cost: 620000,
     status: 'contracted'
   },
   {
@@ -305,7 +305,7 @@ export const INITIAL_BUDGET: BudgetItem[] = [
     category: 'Кейтеринг',
     title: 'Питание участников хакатона: 6 кофе-брейков, 3 горячих обеда, ночные пиццы',
     plannedAmount: 450000,
-    actualAmount: 520000, // OVERRUN! Planned 450k, actual 520k (+70 000 ₽)
+    actualAmount: 620000, // OVERRUN! Planned 450k, actual 620k (+170 000 ₽)
     contractorId: 'cont-2',
     notes: 'Превышение сметы из-за увеличения порций ночного питания и закупки бутилированной воды'
   },

@@ -105,6 +105,20 @@ export const BudgetView: React.FC = () => {
 
   const remainingFromLimit = activeEvent.totalBudgetLimit - metrics.totalActualBudget;
 
+  const renderVariance = (actual: number, planned: number) => {
+    const diff = actual - planned;
+    if (diff === 0) {
+      return <span className="text-zinc-400 font-mono">0 ₽</span>;
+    }
+    if (diff > 0) {
+      return <span className="text-red-600 font-medium font-mono">+{diff.toLocaleString('ru-RU')} ₽</span>;
+    }
+    return <span className="text-emerald-600 font-mono">−{Math.abs(diff).toLocaleString('ru-RU')} ₽</span>;
+  };
+
+  const totalPlanned = filteredBudget.reduce((s, i) => s + i.plannedAmount, 0);
+  const totalActual = filteredBudget.reduce((s, i) => s + i.actualAmount, 0);
+
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -221,13 +235,13 @@ export const BudgetView: React.FC = () => {
           <thead className="bg-zinc-50/80 border-b border-zinc-200 text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
             <tr>
               <th className="py-2.5 px-3.5">Категория</th>
-              <th className="py-2.5 px-3.5">Статья расходов</th>
-              <th className="py-2.5 px-3.5 text-right">План, ₽</th>
-              <th className="py-2.5 px-3.5 text-right">Факт, ₽</th>
-              <th className="py-2.5 px-3.5 text-right">Отклонение</th>
-              <th className="py-2.5 px-3.5">Подрядчик</th>
-              <th className="py-2.5 px-3.5">Заметки</th>
-              <th className="py-2.5 px-3.5 text-right"></th>
+              <th className="py-2.5 px-3.5 max-w-[260px]">Статья расходов</th>
+              <th className="py-2.5 px-3.5 text-right whitespace-nowrap">План, ₽</th>
+              <th className="py-2.5 px-3.5 text-right whitespace-nowrap">Факт, ₽</th>
+              <th className="py-2.5 px-3.5 text-right whitespace-nowrap">Отклонение</th>
+              <th className="py-2.5 px-3.5 min-w-[150px] max-w-[200px]">Подрядчик</th>
+              <th className="py-2.5 px-3.5 min-w-[150px] max-w-[200px]">Заметки</th>
+              <th className="py-2.5 px-3.5 text-right w-10"></th>
             </tr>
           </thead>
           <tbody className="divide-y divide-zinc-200/80 text-zinc-800">
@@ -241,61 +255,55 @@ export const BudgetView: React.FC = () => {
               filteredBudget.map(item => {
                 const diff = item.actualAmount - item.plannedAmount;
                 const isOver = diff > 0;
+                const contractorName = getContractorName(item.contractorId);
                 return (
                   <tr
                     key={item.id}
                     className={`hover:bg-zinc-50/60 transition-colors ${isOver ? 'bg-red-50/30' : ''}`}
                   >
-                    <td className="py-2.5 px-3.5">
-                      <span className="text-[11px] font-medium text-zinc-600 bg-zinc-100 px-1.5 py-0.5 rounded">
+                    <td className="py-2.5 px-3.5 whitespace-nowrap">
+                      <span className="inline-flex items-center whitespace-nowrap px-2 py-0.5 rounded text-xs font-medium bg-zinc-100 text-zinc-700 border border-zinc-200/80">
                         {item.category}
                       </span>
                     </td>
 
-                    <td className="py-2.5 px-3.5 font-medium text-zinc-900 max-w-xs">
+                    <td className="py-2.5 px-3.5 font-medium text-zinc-900 max-w-[260px] truncate" title={item.title}>
                       {item.title}
                     </td>
 
-                    <td className="py-2.5 px-3.5 text-right font-mono tabular-nums text-zinc-600">
+                    <td className="py-2.5 px-3.5 text-right font-mono tabular-nums text-zinc-600 whitespace-nowrap">
                       {formatCurrency(item.plannedAmount)}
                     </td>
 
-                    <td className="py-2.5 px-3.5 text-right font-mono tabular-nums">
-                      <input
-                        type="number"
-                        min="0"
-                        step="5000"
-                        value={item.actualAmount}
-                        onChange={e => handleActualChange(item, e.target.value)}
-                        className={`w-28 text-right font-mono h-7 px-2 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-zinc-900 ${
-                          isOver ? 'border-red-300 text-red-600 bg-red-50/40' : 'border-zinc-200 bg-white text-zinc-900'
-                        }`}
-                      />
+                    <td className="py-2.5 px-3.5 text-right font-mono tabular-nums whitespace-nowrap">
+                      <div className="relative inline-flex items-center">
+                        <input
+                          type="number"
+                          min="0"
+                          step="5000"
+                          value={item.actualAmount}
+                          onChange={e => handleActualChange(item, e.target.value)}
+                          className={`w-28 text-right font-mono tabular-nums pr-6 h-7 pl-2 border rounded text-xs focus:outline-none focus:ring-1 focus:ring-zinc-900 ${
+                            isOver ? 'border-red-300 text-red-600 bg-red-50/40' : 'border-zinc-200 bg-white text-zinc-900'
+                          }`}
+                        />
+                        <span className="absolute right-2 text-xs text-zinc-400 pointer-events-none font-mono">₽</span>
+                      </div>
                     </td>
 
-                    <td className="py-2.5 px-3.5 text-right font-mono tabular-nums">
-                      {diff === 0 ? (
-                        <span className="text-zinc-400">0 ₽</span>
-                      ) : isOver ? (
-                        <span className="text-red-600 font-medium">
-                          +{formatCurrency(diff)}
-                        </span>
-                      ) : (
-                        <span className="text-emerald-600">
-                          -{formatCurrency(Math.abs(diff))}
-                        </span>
-                      )}
+                    <td className="py-2.5 px-3.5 text-right font-mono tabular-nums whitespace-nowrap">
+                      {renderVariance(item.actualAmount, item.plannedAmount)}
                     </td>
 
-                    <td className="py-2.5 px-3.5 text-zinc-500 truncate max-w-[140px]">
-                      {getContractorName(item.contractorId)}
+                    <td className="py-2.5 px-3.5 text-zinc-500 truncate min-w-[150px] max-w-[200px]" title={contractorName}>
+                      {contractorName}
                     </td>
 
-                    <td className="py-2.5 px-3.5 text-zinc-400 max-w-[140px] truncate" title={item.notes}>
+                    <td className="py-2.5 px-3.5 text-zinc-400 min-w-[150px] max-w-[200px] truncate" title={item.notes || '—'}>
                       {item.notes || '—'}
                     </td>
 
-                    <td className="py-2.5 px-3.5 text-right">
+                    <td className="py-2.5 px-3.5 text-right whitespace-nowrap">
                       <button
                         onClick={() => deleteBudgetItem(item.id)}
                         className="text-zinc-400 hover:text-red-600 p-1 transition-colors"
@@ -309,30 +317,21 @@ export const BudgetView: React.FC = () => {
               })
             )}
           </tbody>
-          <tfoot className="bg-zinc-50/80 border-t border-zinc-200 font-medium text-xs">
+          <tfoot className="bg-zinc-50/90 border-t border-zinc-200 font-semibold text-xs">
             <tr>
-              <td colSpan={2} className="py-2.5 px-3.5 text-zinc-600 font-semibold uppercase text-[11px]">
+              <td colSpan={2} className="px-3.5 py-2.5 text-zinc-900 uppercase text-[11px] whitespace-nowrap">
                 Итого ({filteredBudget.length} статей):
               </td>
-              <td className="py-2.5 px-3.5 text-right font-mono font-semibold text-zinc-900">
-                {formatCurrency(filteredBudget.reduce((s, i) => s + i.plannedAmount, 0))}
+              <td className="px-3.5 py-2.5 text-right font-mono font-semibold tabular-nums whitespace-nowrap text-zinc-900">
+                {formatCurrency(totalPlanned)}
               </td>
-              <td className="py-2.5 px-3.5 text-right font-mono font-semibold text-zinc-900">
-                {formatCurrency(filteredBudget.reduce((s, i) => s + i.actualAmount, 0))}
+              <td className="px-3.5 py-2.5 text-right font-mono font-semibold tabular-nums whitespace-nowrap text-zinc-900">
+                {formatCurrency(totalActual)}
               </td>
-              <td className="py-2.5 px-3.5 text-right font-mono font-semibold">
-                {(() => {
-                  const totalDiff =
-                    filteredBudget.reduce((s, i) => s + i.actualAmount, 0) -
-                    filteredBudget.reduce((s, i) => s + i.plannedAmount, 0);
-                  return totalDiff > 0 ? (
-                    <span className="text-red-600 font-medium">+{formatCurrency(totalDiff)}</span>
-                  ) : (
-                    <span className="text-emerald-600">-{formatCurrency(Math.abs(totalDiff))}</span>
-                  );
-                })()}
+              <td className="px-3.5 py-2.5 text-right font-mono font-semibold tabular-nums whitespace-nowrap">
+                {renderVariance(totalActual, totalPlanned)}
               </td>
-              <td colSpan={3}></td>
+              <td colSpan={3} className="px-3.5 py-2.5"></td>
             </tr>
           </tfoot>
         </table>

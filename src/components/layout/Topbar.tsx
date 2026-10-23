@@ -20,7 +20,7 @@ const TAB_NAMES: Record<ActiveTab, string> = {
   guests: 'Гости и QR-билеты',
   team: 'Команда и подрядчики',
   calendar: 'Календарь',
-  ai_assistant: 'Автоматизация и аудит'
+  ai_assistant: 'Ассистент и аудит'
 };
 
 export const Topbar: React.FC = () => {
