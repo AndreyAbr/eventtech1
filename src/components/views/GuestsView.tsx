@@ -11,11 +11,15 @@ import {
   Star,
   Send,
   X,
-  QrCode
+  QrCode,
+  Radio,
+  Sparkles,
+  History,
+  Check
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useEventContext } from '../../context/EventContext';
-import { GuestItem, GuestStatus } from '../../types/event';
+import { GuestItem, GuestStatus, BroadcastMessage } from '../../types/event';
 import { exportGuestsToCSV } from '../../utils/csvExport';
 import { formatDate } from '../../utils/analytics';
 
@@ -24,6 +28,8 @@ export const GuestsView: React.FC = () => {
     activeEvent,
     activeGuests,
     activeSurveys,
+    activeBroadcasts,
+    sendBroadcast,
     addGuest,
     updateGuest,
     deleteGuest,
@@ -73,6 +79,12 @@ export const GuestsView: React.FC = () => {
   const [surveyRating, setSurveyRating] = useState<number>(5);
   const [surveyName, setSurveyName] = useState<string>('');
   const [surveyFeedback, setSurveyFeedback] = useState<string>('');
+
+  // Broadcast Modal State
+  const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
+  const [broadcastTitle, setBroadcastTitle] = useState('');
+  const [broadcastMessage, setBroadcastMessage] = useState('');
+  const [broadcastAudience, setBroadcastAudience] = useState<'all' | 'confirmed' | 'vip' | 'checked_in'>('all');
 
   if (!activeEvent) {
     return <div className="p-8 text-center text-xs text-zinc-400">Мероприятие не выбрано.</div>;
@@ -137,6 +149,44 @@ export const GuestsView: React.FC = () => {
     setSurveyRating(5);
   };
 
+  // Broadcast Audience Count
+  const getRecipientCount = (audience: 'all' | 'confirmed' | 'vip' | 'checked_in') => {
+    switch (audience) {
+      case 'confirmed':
+        return activeGuests.filter(g => g.status === 'confirmed').length;
+      case 'vip':
+        return activeGuests.filter(g => g.ticketType === 'VIP').length;
+      case 'checked_in':
+        return activeGuests.filter(g => g.status === 'checked_in').length;
+      case 'all':
+      default:
+        return activeGuests.filter(g => g.status !== 'cancelled').length;
+    }
+  };
+
+  // Broadcast Submit Handler
+  const handleBroadcastSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!broadcastTitle.trim() || !broadcastMessage.trim()) return;
+
+    const count = getRecipientCount(broadcastAudience);
+    sendBroadcast({
+      eventId: activeEvent.id,
+      title: broadcastTitle.trim(),
+      message: broadcastMessage.trim(),
+      audience: broadcastAudience,
+      recipientCount: count
+    });
+
+    setBroadcastTitle('');
+    setBroadcastMessage('');
+  };
+
+  const applyBroadcastTemplate = (title: string, message: string) => {
+    setBroadcastTitle(title);
+    setBroadcastMessage(message);
+  };
+
   // Filter guests
   const filteredGuests = activeGuests.filter(guest => {
     const query = searchQuery.toLowerCase();
@@ -165,7 +215,7 @@ export const GuestsView: React.FC = () => {
             Участники и билеты
           </h1>
           <p className="text-xs text-zinc-500">
-            Реестр делегатов, регистрация, QR-пропуска и чек-ин
+            Реестр делегатов, регистрация, QR-пропуска, чек-ин и рассылки
           </p>
         </div>
 
@@ -226,8 +276,8 @@ export const GuestsView: React.FC = () => {
         <div className="space-y-3">
           {/* Filters Bar */}
           <div className="card-surface p-2.5 flex flex-col md:flex-row items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5 w-full md:w-auto flex-1">
-              <div className="relative flex-1 max-w-xs">
+            <div className="flex items-center gap-2.5 w-full md:w-auto flex-1 flex-wrap">
+              <div className="relative flex-1 min-w-[180px] max-w-xs">
                 <input
                   type="text"
                   placeholder="Поиск по ФИО, компании, email..."
@@ -265,13 +315,28 @@ export const GuestsView: React.FC = () => {
               </select>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Broadcast Notification Button */}
+              <button
+                onClick={() => setIsBroadcastModalOpen(true)}
+                className="btn-secondary"
+                title="Информировать участников (Рассылка)"
+              >
+                <Radio className="w-3.5 h-3.5 text-zinc-600" />
+                <span>Рассылка</span>
+                {activeBroadcasts.length > 0 && (
+                  <span className="font-mono text-[10px] bg-zinc-200 px-1.5 py-0.2 rounded text-zinc-700">
+                    {activeBroadcasts.length}
+                  </span>
+                )}
+              </button>
+
               <button
                 onClick={() => exportGuestsToCSV(activeGuests, activeEvent.title)}
                 className="btn-secondary"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5 text-zinc-500" />
-                Экспорт в CSV
+                Экспорт CSV
               </button>
 
               <button
@@ -279,7 +344,7 @@ export const GuestsView: React.FC = () => {
                 className="btn-primary"
               >
                 <UserPlus className="w-3.5 h-3.5" />
-                Добавить участника
+                Регистрация
               </button>
             </div>
           </div>
@@ -326,43 +391,42 @@ export const GuestsView: React.FC = () => {
 
                       <td className="py-2.5 px-3.5 text-zinc-500 font-mono text-[11px]">
                         <div>{guest.email}</div>
-                        <div className="text-[10px] text-zinc-400">{guest.phone}</div>
+                        <div>{guest.phone}</div>
                       </td>
 
                       <td className="py-2.5 px-3.5">
-                        <span className="text-[11px] font-medium text-zinc-700 bg-zinc-100 px-1.5 py-0.5 rounded">
+                        <span className={`text-[11px] font-medium px-2 py-0.5 rounded border ${
+                          guest.ticketType === 'VIP'
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : guest.ticketType === 'Спикер'
+                            ? 'bg-blue-50 text-blue-700 border-blue-200'
+                            : 'bg-zinc-100 text-zinc-700 border-zinc-200'
+                        }`}>
                           {guest.ticketType}
                         </span>
                       </td>
 
                       <td className="py-2.5 px-3.5">
                         <select
-                          aria-label="Сменить статус участника"
+                          aria-label="Изменить статус участника"
                           value={guest.status}
                           onChange={e => updateGuest({ ...guest, status: e.target.value as GuestStatus })}
-                          className={`h-7 px-2 rounded border text-xs font-medium focus:outline-none ${
-                            guest.status === 'checked_in'
-                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                              : guest.status === 'confirmed'
-                              ? 'bg-zinc-100 text-zinc-800 border-zinc-200'
-                              : guest.status === 'registered'
-                              ? 'bg-white text-zinc-700 border-zinc-200'
-                              : 'bg-red-50 text-red-700 border-red-200'
-                          }`}
+                          className="h-7 px-1.5 rounded border border-zinc-200 bg-white text-xs font-medium focus:outline-none focus:border-zinc-900 cursor-pointer"
                         >
                           <option value="registered">Зарегистрирован</option>
                           <option value="confirmed">Подтвержден</option>
-                          <option value="checked_in">На площадке</option>
+                          <option value="checked_in">На площадке (Чек-ин)</option>
                           <option value="cancelled">Отменен</option>
                         </select>
                       </td>
 
-                      <td className="py-2.5 px-3.5">
+                      <td className="py-2.5 px-3.5 font-mono text-[11px] text-zinc-500">
                         <button
                           onClick={() => setViewTicketGuest(guest)}
-                          className="font-mono text-xs bg-zinc-100 hover:bg-zinc-200/80 px-2 py-0.5 rounded text-zinc-700 border border-zinc-200 inline-flex items-center gap-1.5 transition-colors"
+                          className="hover:text-zinc-900 underline flex items-center gap-1"
+                          title="Посмотреть QR билет"
                         >
-                          <QrCode className="w-3 h-3 text-zinc-500" />
+                          <QrCode className="w-3.5 h-3.5 text-zinc-400" />
                           <span>{guest.qrCodeToken}</span>
                         </button>
                       </td>
@@ -388,16 +452,16 @@ export const GuestsView: React.FC = () => {
       {/* SUBTAB 2: REGISTRATION FORM */}
       {currentSubTab === 'registration' && (
         <div className="max-w-xl mx-auto card-surface p-6">
-          <div className="border-b border-zinc-200 pb-3 mb-4">
+          <div className="border-b border-zinc-200 pb-4 mb-4">
             <h2 className="text-base font-semibold text-zinc-900">
-              Регистрация участника
+              {isGuestMode ? 'Регистрация на мероприятие' : 'Ручная регистрация нового гостя'}
             </h2>
-            <p className="text-xs text-zinc-500">
-              «{activeEvent.title}» • {formatDate(activeEvent.startDate)}
+            <p className="text-xs text-zinc-500 mt-0.5">
+              После заполнения формы генерируется персональный QR-билет для прохода через терминал.
             </p>
           </div>
 
-          <form onSubmit={handleRegSubmit} className="space-y-3.5">
+          <form onSubmit={handleRegSubmit} className="space-y-4">
             <div>
               <label className="block text-xs font-medium text-zinc-700 mb-1">
                 ФИО участника <span className="text-red-500">*</span>
@@ -405,50 +469,50 @@ export const GuestsView: React.FC = () => {
               <input
                 type="text"
                 required
-                placeholder="Иван Иванов"
+                placeholder="Иван Иванович Иванов"
                 value={regForm.fullName}
                 onChange={e => setRegForm({ ...regForm, fullName: e.target.value })}
                 className="input-base w-full"
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-zinc-700 mb-1">
-                  Email <span className="text-red-500">*</span>
+                  Электронная почта <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="email"
                   required
-                  placeholder="ivanov@example.com"
+                  placeholder="ivan@example.com"
                   value={regForm.email}
                   onChange={e => setRegForm({ ...regForm, email: e.target.value })}
-                  className="input-base w-full"
+                  className="input-base w-full font-mono text-xs"
                 />
               </div>
 
               <div>
                 <label className="block text-xs font-medium text-zinc-700 mb-1">
-                  Телефон
+                  Номер телефона
                 </label>
                 <input
                   type="tel"
                   placeholder="+7 (999) 000-00-00"
                   value={regForm.phone}
                   onChange={e => setRegForm({ ...regForm, phone: e.target.value })}
-                  className="input-base w-full"
+                  className="input-base w-full font-mono text-xs"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-zinc-700 mb-1">
-                  Компания / Вуз
+                  Организация / Компания
                 </label>
                 <input
                   type="text"
-                  placeholder="Например: Яндекс, МГУ"
+                  placeholder="ООО Технологии"
                   value={regForm.organization}
                   onChange={e => setRegForm({ ...regForm, organization: e.target.value })}
                   className="input-base w-full"
@@ -457,40 +521,40 @@ export const GuestsView: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-medium text-zinc-700 mb-1">
-                  Тип пропуска
+                  Категория билета
                 </label>
                 <select
                   value={regForm.ticketType}
-                  onChange={e => setRegForm({ ...regForm, ticketType: e.target.value as GuestItem['ticketType'] })}
+                  onChange={e => setRegForm({ ...regForm, ticketType: e.target.value as any })}
                   className="input-base w-full cursor-pointer"
                 >
                   <option value="Стандарт">Стандартный билет</option>
-                  <option value="VIP">VIP</option>
-                  <option value="Спикер">Спикер</option>
-                  <option value="Пресса">Пресса</option>
+                  <option value="VIP">VIP доступ</option>
+                  <option value="Спикер">Спикер / Докладчик</option>
+                  <option value="Пресса">Пресса и медиа</option>
                 </select>
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-medium text-zinc-700 mb-1">
-                Особые пожелания или диета
+                Пожелания по питанию / Комментарий
               </label>
               <input
                 type="text"
-                placeholder="Например: Вегетарианское меню"
+                placeholder="Вегетарианское меню, безглютен и т.д."
                 value={regForm.dietaryNotes}
                 onChange={e => setRegForm({ ...regForm, dietaryNotes: e.target.value })}
                 className="input-base w-full"
               />
             </div>
 
-            <div className="pt-2">
+            <div className="pt-2 flex justify-end gap-2">
               <button
                 type="submit"
-                className="btn-primary w-full h-9 text-xs"
+                className="btn-primary w-full sm:w-auto"
               >
-                Зарегистрировать и выпустить билет
+                Подтвердить регистрацию и получить билет
               </button>
             </div>
           </form>
@@ -499,143 +563,138 @@ export const GuestsView: React.FC = () => {
 
       {/* SUBTAB 3: QR CHECK-IN TERMINAL */}
       {currentSubTab === 'terminal' && !isGuestMode && (
-        <div className="max-w-xl mx-auto card-surface p-6 space-y-4">
-          <div className="border-b border-zinc-200 pb-3">
-            <h2 className="text-base font-semibold text-zinc-900 flex items-center gap-2">
-              <ScanLine className="w-4 h-4 text-zinc-600" />
-              Терминал прохода (QR Check-in)
-            </h2>
-            <p className="text-xs text-zinc-500">
-              Поиск по номеру токена или выбор из списка прибывших участников
-            </p>
-          </div>
-
-          <div className="space-y-3 bg-zinc-50 p-4 rounded-md border border-zinc-200">
-            <div>
-              <label className="block text-xs font-medium text-zinc-700 mb-1">
-                Быстрый выбор участника
-              </label>
-              <select
-                value={terminalSelectedGuestId}
-                onChange={e => {
-                  setTerminalSelectedGuestId(e.target.value);
-                  setTerminalToken('');
-                }}
-                className="input-base w-full cursor-pointer"
-              >
-                <option value="">Выберите гостя...</option>
-                {activeGuests.map(g => (
-                  <option key={g.id} value={g.id}>
-                    {g.fullName} ({g.ticketType}) — {g.status === 'checked_in' ? '✓ Уже на площадке' : 'Ожидает входа'}
-                  </option>
-                ))}
-              </select>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="lg:col-span-2 card-surface p-5 space-y-4">
+            <div className="border-b border-zinc-200 pb-3">
+              <h2 className="text-base font-semibold text-zinc-900 flex items-center gap-2">
+                <ScanLine className="w-4 h-4 text-zinc-900" />
+                Терминал сканирования билетов на входе
+              </h2>
+              <p className="text-xs text-zinc-500 mt-0.5">
+                Введите токен из QR-кода или выберите участника для мгновенной фиксации явки
+              </p>
             </div>
 
-            <div className="text-center text-[10px] uppercase font-mono text-zinc-400">
-              Или
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-zinc-700 mb-1">
-                Токен пропуска
-              </label>
-              <input
-                type="text"
-                placeholder="EVT-evt-1-gst-1"
-                value={terminalToken}
-                onChange={e => {
-                  setTerminalToken(e.target.value);
-                  setTerminalSelectedGuestId('');
-                }}
-                className="input-base w-full font-mono"
-              />
-            </div>
-          </div>
-
-          {selectedTerminalGuest && (
-            <div className="p-4 rounded-md border border-zinc-200 bg-white flex items-center gap-4">
-              <div className="p-2 border border-zinc-200 rounded shrink-0">
-                <QRCodeSVG value={selectedTerminalGuest.qrCodeToken} size={84} level="M" />
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                  Скан или ввод токена пропуска
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Например: EVT-evt-1-gst-10"
+                    value={terminalToken}
+                    onChange={e => {
+                      setTerminalToken(e.target.value);
+                      setTerminalSelectedGuestId('');
+                    }}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') handleTerminalCheckIn();
+                    }}
+                    className="input-base flex-1 font-mono uppercase"
+                  />
+                  <button
+                    onClick={handleTerminalCheckIn}
+                    className="btn-primary"
+                  >
+                    Чек-ин
+                  </button>
+                </div>
               </div>
-              <div className="text-xs space-y-1">
-                <div className="font-semibold text-zinc-900 text-sm">
-                  {selectedTerminalGuest.fullName}
-                </div>
-                <div className="text-zinc-600">
-                  {selectedTerminalGuest.organization} • <strong className="text-zinc-900">{selectedTerminalGuest.ticketType}</strong>
-                </div>
-                <div className="font-mono text-zinc-400 text-[11px]">
-                  {selectedTerminalGuest.qrCodeToken}
-                </div>
+
+              <div>
+                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                  Или быстрый выбор из списка ожидающих:
+                </label>
+                <select
+                  value={terminalSelectedGuestId}
+                  onChange={e => {
+                    setTerminalSelectedGuestId(e.target.value);
+                    setTerminalToken('');
+                  }}
+                  className="input-base w-full cursor-pointer"
+                >
+                  <option value="">-- Выберите гостя для отметки явки --</option>
+                  {activeGuests
+                    .filter(g => g.status !== 'checked_in')
+                    .map(g => (
+                      <option key={g.id} value={g.id}>
+                        {g.fullName} ({g.organization}) — {g.qrCodeToken}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            </div>
+
+            {selectedTerminalGuest && (
+              <div className="bg-zinc-50 border border-zinc-200 rounded-md p-4 flex items-center justify-between">
                 <div>
-                  {selectedTerminalGuest.status === 'checked_in' ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                      <CheckCircle2 className="w-3 h-3" />
-                      Чек-ин пройден
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                      <Clock className="w-3 h-3" />
-                      Ожидает отметки
-                    </span>
-                  )}
+                  <span className="text-[10px] uppercase font-mono text-zinc-400 block">Найден участник</span>
+                  <h4 className="text-sm font-semibold text-zinc-900 mt-0.5">{selectedTerminalGuest.fullName}</h4>
+                  <p className="text-xs text-zinc-500 font-mono">{selectedTerminalGuest.organization} • {selectedTerminalGuest.ticketType}</p>
                 </div>
+                <button
+                  onClick={handleTerminalCheckIn}
+                  className="btn-primary"
+                >
+                  Зафиксировать вход
+                </button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          <button
-            onClick={handleTerminalCheckIn}
-            className="btn-primary w-full h-9 text-xs"
-          >
-            <CheckCircle2 className="w-4 h-4" />
-            Подтвердить проход (Check-in)
-          </button>
+          <div className="card-surface p-5 space-y-3">
+            <h3 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider">
+              Последние отметки явки
+            </h3>
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {activeGuests.filter(g => g.status === 'checked_in').length === 0 ? (
+                <div className="text-xs text-zinc-400 text-center py-6">
+                  На площадку еще никто не прибыл
+                </div>
+              ) : (
+                activeGuests
+                  .filter(g => g.status === 'checked_in')
+                  .slice(0, 10)
+                  .map(g => (
+                    <div key={g.id} className="p-2 rounded bg-zinc-50 border border-zinc-200 text-xs flex items-center justify-between">
+                      <div>
+                        <div className="font-medium text-zinc-900">{g.fullName}</div>
+                        <div className="text-[10px] text-zinc-500 font-mono">{g.organization}</div>
+                      </div>
+                      <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                        Чек-ин
+                      </span>
+                    </div>
+                  ))
+              )}
+            </div>
+          </div>
         </div>
       )}
 
-      {/* SUBTAB 4: SURVEYS & FEEDBACK */}
+      {/* SUBTAB 4: SURVEYS & NPS */}
       {currentSubTab === 'surveys' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="card-surface p-4 space-y-3">
-            <h3 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider pb-2 border-b border-zinc-200">
-              Оставить отзыв
-            </h3>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="lg:col-span-1 card-surface p-5 space-y-4">
+            <div>
+              <h2 className="text-sm font-semibold text-zinc-900">
+                Оставить отзыв о мероприятии
+              </h2>
+              <p className="text-xs text-zinc-500 mt-0.5">
+                Анкета удовлетворенности для расчета NPS и качества организации
+              </p>
+            </div>
 
-            <form onSubmit={handleSurveySubmit} className="space-y-3">
+            <form onSubmit={handleSurveySubmit} className="space-y-3.5">
               <div>
                 <label className="block text-xs font-medium text-zinc-700 mb-1">
-                  Оценка
-                </label>
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map(star => (
-                    <button
-                      key={star}
-                      type="button"
-                      onClick={() => setSurveyRating(star)}
-                      className="p-1 text-zinc-300 hover:text-amber-500 transition-colors"
-                    >
-                      <Star
-                        className={`w-5 h-5 ${
-                          star <= surveyRating ? 'text-amber-500 fill-amber-500' : 'text-zinc-200'
-                        }`}
-                      />
-                    </button>
-                  ))}
-                  <span className="text-xs font-mono font-medium text-zinc-700 ml-2">
-                    {surveyRating} из 5
-                  </span>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
-                  Имя / Организация
+                  Ваше имя (или оставьте пустым)
                 </label>
                 <input
                   type="text"
-                  placeholder="Иван (Компания)"
+                  placeholder="Анонимный гость"
                   value={surveyName}
                   onChange={e => setSurveyName(e.target.value)}
                   className="input-base w-full"
@@ -644,58 +703,281 @@ export const GuestsView: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-medium text-zinc-700 mb-1">
-                  Отзыв <span className="text-red-500">*</span>
+                  Оценка мероприятия
+                </label>
+                <div className="flex items-center gap-1.5">
+                  {[1, 2, 3, 4, 5].map(star => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setSurveyRating(star)}
+                      className="p-1 hover:scale-110 transition-transform"
+                    >
+                      <Star
+                        className={`w-6 h-6 ${
+                          star <= surveyRating
+                            ? 'text-amber-500 fill-amber-500'
+                            : 'text-zinc-300'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                  <span className="font-mono text-xs font-semibold text-zinc-700 ml-2">
+                    {surveyRating} / 5
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                  Отзыв / Впечатления <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   rows={3}
                   required
-                  placeholder="Поделитесь впечатлениями..."
+                  placeholder="Что понравилось, а что стоит улучшить?"
                   value={surveyFeedback}
                   onChange={e => setSurveyFeedback(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-md bg-white border border-zinc-200 text-xs text-zinc-900 focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 resize-none"
+                  className="w-full px-2.5 py-1.5 rounded-md bg-white border border-zinc-200 text-xs text-zinc-900 focus:outline-none focus:border-zinc-900 resize-none"
                 />
               </div>
 
               <button type="submit" className="btn-primary w-full">
                 <Send className="w-3.5 h-3.5" />
-                Отправить
+                Отправить отзыв
               </button>
             </form>
           </div>
 
-          <div className="lg:col-span-2 card-surface p-4 space-y-3">
-            <h3 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider pb-2 border-b border-zinc-200">
-              Лента отзывов ({activeSurveys.length})
-            </h3>
+          <div className="lg:col-span-2 card-surface p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-900">
+                  Лента отзывов участников ({activeSurveys.length})
+                </h3>
+              </div>
+            </div>
 
-            <div className="space-y-2.5 max-h-[460px] overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
               {activeSurveys.length === 0 ? (
-                <div className="py-8 text-center text-xs text-zinc-400">
-                  Отзывов пока нет
+                <div className="py-12 text-center text-xs text-zinc-400">
+                  Отзывов пока нет. Будьте первыми, кто оставит впечатление!
                 </div>
               ) : (
-                activeSurveys.map(item => (
-                  <div key={item.id} className="p-3 rounded border border-zinc-200 bg-zinc-50/50 space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-zinc-900">{item.guestName}</span>
-                      <div className="flex items-center gap-0.5">
-                        {[1, 2, 3, 4, 5].map(s => (
-                          <Star
-                            key={s}
-                            className={`w-3 h-3 ${
-                              s <= item.rating ? 'text-amber-500 fill-amber-500' : 'text-zinc-200'
-                            }`}
-                          />
-                        ))}
+                activeSurveys.map(s => (
+                  <div key={s.id} className="p-3.5 rounded-lg border border-zinc-200 bg-zinc-50/50 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <strong className="text-xs font-semibold text-zinc-900">{s.guestName}</strong>
+                        <div className="flex items-center gap-0.5">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`w-3 h-3 ${
+                                i < s.rating ? 'text-amber-500 fill-amber-500' : 'text-zinc-200'
+                              }`}
+                            />
+                          ))}
+                        </div>
                       </div>
+                      <span className="font-mono text-[10px] text-zinc-400">
+                        {new Date(s.submittedAt).toLocaleDateString('ru-RU')}
+                      </span>
                     </div>
-                    <p className="text-xs text-zinc-700 leading-relaxed">{item.feedback}</p>
-                    <div className="text-[10px] font-mono text-zinc-400">
-                      {new Date(item.submittedAt).toLocaleDateString('ru-RU')}
-                    </div>
+                    <p className="text-xs text-zinc-700 leading-relaxed">{s.feedback}</p>
                   </div>
                 ))
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Broadcast Modal (Center of Communication) */}
+      {isBroadcastModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/50 animate-fade-in">
+          <div className="bg-white border border-zinc-200 rounded-lg w-full max-w-2xl shadow-xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="px-5 py-3.5 border-b border-zinc-200 flex items-center justify-between bg-zinc-50/70">
+              <div className="flex items-center gap-2">
+                <Radio className="w-4 h-4 text-zinc-900" />
+                <div>
+                  <h3 className="text-sm font-semibold text-zinc-900">
+                    Центр уведомлений и рассылок участникам
+                  </h3>
+                  <p className="text-xs text-zinc-500">
+                    Оповещения об изменении программы, напоминания о регистрации и опросы
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsBroadcastModalOpen(false)}
+                className="text-zinc-400 hover:text-zinc-700 p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 overflow-y-auto flex-1">
+              {/* Fast Templates */}
+              <div>
+                <span className="text-[11px] font-medium text-zinc-500 uppercase block mb-1.5">
+                  Быстрые шаблоны:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      applyBroadcastTemplate(
+                        'Напоминание: старт регистрации через 1 час',
+                        'Уважаемый участник! Регистрация на площадке начинается за 1 час до старта. Пожалуйста, приготовьте ваш электронный QR-билет для сканирования на входе.'
+                      )
+                    }
+                    className="text-xs px-2.5 py-1 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-200 transition-colors"
+                  >
+                    ⏰ Напоминание о регистрации
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      applyBroadcastTemplate(
+                        'Обновление тайминга программы мероприятия',
+                        'Внимание! В расписание ключевых докладов и сессий внесены небольшие уточнения. Ознакомиться со свежим таймингом можно во вкладке Календарь.'
+                      )
+                    }
+                    className="text-xs px-2.5 py-1 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-200 transition-colors"
+                  >
+                    📢 Изменение программы
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      applyBroadcastTemplate(
+                        'Электронный билет и инструкция по проходу',
+                        'Ваш персональный пропуск подтвержден. Предъявите QR-код билета из личного кабинета сотруднику зоны регистрации.'
+                      )
+                    }
+                    className="text-xs px-2.5 py-1 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-200 transition-colors"
+                  >
+                    🎟 QR-билеты
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      applyBroadcastTemplate(
+                        'Анкета обратной связи о мероприятии',
+                        'Благодарим вас за участие! Пожалуйста, оставьте короткий отзыв и оценку во вкладке «Отзывы» — это займет не более 30 секунд.'
+                      )
+                    }
+                    className="text-xs px-2.5 py-1 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-200 transition-colors"
+                  >
+                    ⭐️ Сбор отзывов
+                  </button>
+                </div>
+              </div>
+
+              {/* Compose Broadcast Form */}
+              <form onSubmit={handleBroadcastSubmit} className="space-y-3 pt-2 border-t border-zinc-100">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-zinc-700 mb-1">
+                      Тема сообщения <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Например: Обновление программы"
+                      value={broadcastTitle}
+                      onChange={e => setBroadcastTitle(e.target.value)}
+                      className="input-base w-full"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-zinc-700 mb-1">
+                      Аудитория получателей
+                    </label>
+                    <select
+                      value={broadcastAudience}
+                      onChange={e => setBroadcastAudience(e.target.value as any)}
+                      className="input-base w-full cursor-pointer"
+                    >
+                      <option value="all">Все зарегистрированные ({getRecipientCount('all')} чел.)</option>
+                      <option value="confirmed">Подтвержденные ({getRecipientCount('confirmed')} чел.)</option>
+                      <option value="vip">VIP гости ({getRecipientCount('vip')} чел.)</option>
+                      <option value="checked_in">Прибывшие на площадку ({getRecipientCount('checked_in')} чел.)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-zinc-700 mb-1">
+                    Текст рассылки <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    rows={3}
+                    required
+                    placeholder="Напишите текст сообщения для отправки..."
+                    value={broadcastMessage}
+                    onChange={e => setBroadcastMessage(e.target.value)}
+                    className="w-full px-2.5 py-1.5 rounded-md bg-white border border-zinc-200 text-xs text-zinc-900 focus:outline-none focus:border-zinc-900 resize-none leading-relaxed"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-xs text-zinc-500 font-mono">
+                    Получателей: <strong className="text-zinc-900">{getRecipientCount(broadcastAudience)}</strong>
+                  </span>
+                  <button type="submit" className="btn-primary">
+                    <Send className="w-3.5 h-3.5" />
+                    Отправить рассылку
+                  </button>
+                </div>
+              </form>
+
+              {/* History Log */}
+              <div className="pt-3 border-t border-zinc-200">
+                <span className="text-xs font-semibold text-zinc-800 flex items-center gap-1.5 mb-2">
+                  <History className="w-3.5 h-3.5 text-zinc-500" />
+                  История отправленных рассылок ({activeBroadcasts.length})
+                </span>
+
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {activeBroadcasts.length === 0 ? (
+                    <div className="text-xs text-zinc-400 py-3 text-center border border-dashed border-zinc-200 rounded">
+                      Рассылок еще не было
+                    </div>
+                  ) : (
+                    activeBroadcasts.map(bc => (
+                      <div key={bc.id} className="p-2.5 rounded bg-zinc-50 border border-zinc-200 text-xs space-y-1">
+                        <div className="flex items-center justify-between">
+                          <strong className="text-zinc-900 font-medium">{bc.title}</strong>
+                          <span className="font-mono text-[10px] text-zinc-400">
+                            {new Date(bc.sentAt).toLocaleString('ru-RU')}
+                          </span>
+                        </div>
+                        <p className="text-zinc-600 line-clamp-2 leading-relaxed text-[11px]">{bc.message}</p>
+                        <div className="flex items-center gap-2 pt-1 font-mono text-[10px] text-zinc-400">
+                          <span className="px-1.5 py-0.2 bg-zinc-200/60 rounded text-zinc-700">
+                            {bc.audience}
+                          </span>
+                          <span>•</span>
+                          <span>{bc.recipientCount} получателей</span>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="px-5 py-3 border-t border-zinc-200 flex justify-end bg-zinc-50/50">
+              <button
+                type="button"
+                onClick={() => setIsBroadcastModalOpen(false)}
+                className="btn-secondary"
+              >
+                Закрыть
+              </button>
             </div>
           </div>
         </div>
@@ -708,10 +990,13 @@ export const GuestsView: React.FC = () => {
             {/* Ticket Header */}
             <div className="p-5 border-b border-zinc-200 flex items-start justify-between bg-zinc-50">
               <div>
-                <span className="font-mono text-[10px] uppercase font-semibold text-zinc-500 tracking-wider block">
-                  Электронный пропуск
-                </span>
-                <h3 className="text-sm font-semibold text-zinc-900 mt-0.5 leading-snug">
+                <div className="flex items-center gap-2 mb-1.5">
+                  <img src="/logo.png" alt="EventTech" className="h-4 w-auto object-contain" />
+                  <span className="font-mono text-[10px] uppercase font-semibold text-zinc-500 tracking-wider">
+                    Электронный пропуск
+                  </span>
+                </div>
+                <h3 className="text-sm font-semibold text-zinc-900 leading-snug">
                   {activeEvent.title}
                 </h3>
                 <p className="text-xs text-zinc-500 mt-0.5">

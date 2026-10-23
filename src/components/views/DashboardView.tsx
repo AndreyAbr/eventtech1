@@ -2,11 +2,10 @@ import React from 'react';
 import {
   AlertTriangle,
   ArrowRight,
+  ArrowUpRight,
   Check,
   Plus,
-  FileSpreadsheet,
-  QrCode,
-  Sparkles
+  FileSpreadsheet
 } from 'lucide-react';
 import { useEventContext } from '../../context/EventContext';
 import { formatCurrency, formatDate, isTaskOverdue } from '../../utils/analytics';
@@ -126,12 +125,19 @@ export const DashboardView: React.FC = () => {
         </div>
       )}
 
-      {/* Horizontal KPI Metric Bar */}
+      {/* Horizontal KPI Metric Bar (All Clickable) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 bg-white border border-zinc-200 rounded-lg divide-y sm:divide-y-0 sm:divide-x divide-zinc-200 shadow-sm">
-        {/* Metric 1 */}
-        <div className="p-4">
-          <div className="text-xs font-medium text-zinc-500">
-            Готовность ивента
+        {/* Metric 1: Readiness -> Tasks */}
+        <div
+          onClick={() => setActiveTab('tasks')}
+          className="p-4 cursor-pointer hover:bg-zinc-50/80 transition-colors group relative"
+          title="Нажмите для перехода к задачам"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-zinc-500">
+              Готовность ивента
+            </span>
+            <ArrowUpRight className="w-3.5 h-3.5 text-zinc-300 group-hover:text-zinc-900 transition-colors" />
           </div>
           <div className="text-2xl font-semibold text-zinc-900 font-mono tabular-nums mt-1">
             {metrics.readinessPercent}%
@@ -148,10 +154,17 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        {/* Metric 2 */}
-        <div className="p-4">
-          <div className="text-xs font-medium text-zinc-500">
-            Участники & Чек-ин
+        {/* Metric 2: Guests & Check-in -> Guests */}
+        <div
+          onClick={() => setActiveTab('guests')}
+          className="p-4 cursor-pointer hover:bg-zinc-50/80 transition-colors group relative"
+          title="Нажмите для перехода к списку гостей и чек-ину"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-zinc-500">
+              Участники & Чек-ин
+            </span>
+            <ArrowUpRight className="w-3.5 h-3.5 text-zinc-300 group-hover:text-zinc-900 transition-colors" />
           </div>
           <div className="text-2xl font-semibold text-zinc-900 font-mono tabular-nums mt-1">
             {metrics.registeredCount}
@@ -164,10 +177,17 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        {/* Metric 3 */}
-        <div className="p-4">
-          <div className="text-xs font-medium text-zinc-500">
-            Фактические расходы
+        {/* Metric 3: Budget -> Budget */}
+        <div
+          onClick={() => setActiveTab('budget')}
+          className="p-4 cursor-pointer hover:bg-zinc-50/80 transition-colors group relative"
+          title="Нажмите для перехода к смете и бюджету"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-zinc-500">
+              Фактические расходы
+            </span>
+            <ArrowUpRight className="w-3.5 h-3.5 text-zinc-300 group-hover:text-zinc-900 transition-colors" />
           </div>
           <div className={`text-2xl font-semibold font-mono tabular-nums mt-1 ${
             metrics.isOverTotalLimit ? 'text-red-600' : 'text-zinc-900'
@@ -182,22 +202,26 @@ export const DashboardView: React.FC = () => {
           </div>
         </div>
 
-        {/* Metric 4 */}
-        <div className="p-4">
-          <div className="text-xs font-medium text-zinc-500">
-            Оценка гостей (NPS)
+        {/* Metric 4: NPS & Feedback -> Guests (Surveys) */}
+        <div
+          onClick={() => setActiveTab('guests')}
+          className="p-4 cursor-pointer hover:bg-zinc-50/80 transition-colors group relative"
+          title="Нажмите для перехода к отзывам участников"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-zinc-500">
+              Оценка гостей (NPS)
+            </span>
+            <ArrowUpRight className="w-3.5 h-3.5 text-zinc-300 group-hover:text-zinc-900 transition-colors" />
           </div>
           <div className="text-2xl font-semibold text-zinc-900 font-mono tabular-nums mt-1">
             {metrics.averageRating > 0 ? `${metrics.averageRating} / 5.0` : '—'}
           </div>
           <div className="text-xs text-zinc-500 mt-1.5 flex items-center justify-between">
             <span>{metrics.surveysCount} ответов</span>
-            <button
-              onClick={() => setActiveTab('guests')}
-              className="text-zinc-600 hover:text-zinc-900 text-[11px] font-medium"
-            >
+            <span className="text-zinc-600 group-hover:text-zinc-900 text-[11px] font-medium flex items-center gap-0.5">
               Отзывы →
-            </button>
+            </span>
           </div>
         </div>
       </div>
@@ -205,7 +229,7 @@ export const DashboardView: React.FC = () => {
       {/* 2-Column Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Left (2 cols): Urgent and Overdue Tasks */}
-        <div className="lg:col-span-2 card-surface p-4 flex flex-col">
+        <div className="card-surface p-4 flex flex-col lg:col-span-2">
           <div className="flex items-center justify-between pb-3 border-b border-zinc-200">
             <div>
               <h2 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider">
@@ -232,18 +256,23 @@ export const DashboardView: React.FC = () => {
                 return (
                   <div
                     key={task.id}
-                    className="py-2.5 flex items-center justify-between gap-3 text-xs hover:bg-zinc-50/60 px-1 rounded transition-colors"
+                    onClick={() => setActiveTab('tasks')}
+                    className="py-2.5 flex items-center justify-between gap-3 text-xs hover:bg-zinc-50/80 px-1.5 rounded transition-colors cursor-pointer group"
+                    title="Нажмите для перехода к задаче в плане"
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       <button
-                        onClick={() => updateTask({ ...task, status: 'done' })}
-                        className="w-4 h-4 rounded border border-zinc-300 hover:border-zinc-900 flex items-center justify-center transition-colors shrink-0"
+                        onClick={e => {
+                          e.stopPropagation();
+                          updateTask({ ...task, status: 'done' });
+                        }}
+                        className="w-4 h-4 rounded border border-zinc-300 hover:border-zinc-900 flex items-center justify-center transition-colors shrink-0 bg-white"
                         title="Отметить выполненной"
                       >
                         <Check className="w-3 h-3 text-transparent hover:text-zinc-900" />
                       </button>
                       <div className="truncate">
-                        <span className="font-medium text-zinc-900 truncate block">
+                        <span className="font-medium text-zinc-900 group-hover:underline truncate block">
                           {task.title}
                         </span>
                       </div>
@@ -299,7 +328,12 @@ export const DashboardView: React.FC = () => {
               const pct = amounts.planned > 0 ? Math.round((amounts.actual / amounts.planned) * 100) : 100;
               const isOver = amounts.actual > amounts.planned && amounts.planned > 0;
               return (
-                <div key={category} className="space-y-1">
+                <div
+                  key={category}
+                  onClick={() => setActiveTab('budget')}
+                  className="space-y-1 p-1 -m-1 rounded hover:bg-zinc-50 cursor-pointer transition-colors"
+                  title="Нажмите для перехода в смету"
+                >
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-zinc-700 font-medium truncate max-w-[150px]">
                       {category}
@@ -319,47 +353,13 @@ export const DashboardView: React.FC = () => {
                   <div className="flex justify-between text-[11px] text-zinc-400 font-mono">
                     <span>План: {formatCurrency(amounts.planned)}</span>
                     <span className={isOver ? 'text-red-600 font-medium' : ''}>
-                      {isOver ? `+${formatCurrency(amounts.actual - amounts.planned)}` : `${pct}%`}
+                      {pct}%
                     </span>
                   </div>
                 </div>
               );
             })}
           </div>
-
-          <div className="pt-3 border-t border-zinc-200 mt-2 flex justify-between items-center text-xs">
-            <span className="text-zinc-500">Всего затрачено:</span>
-            <span className="font-mono font-semibold text-zinc-900">
-              {formatCurrency(metrics.totalActualBudget)}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Access Bar */}
-      <div className="card-surface p-3.5 flex items-center justify-between gap-3 flex-wrap">
-        <span className="text-xs font-medium text-zinc-500">Быстрые действия:</span>
-        <div className="flex items-center gap-2 flex-wrap">
-          <button
-            onClick={() => setActiveTab('guests')}
-            className="btn-secondary"
-          >
-            <QrCode className="w-3.5 h-3.5 text-zinc-500" />
-            Регистрация гостя
-          </button>
-          <button
-            onClick={() => setActiveTab('ai_assistant')}
-            className="btn-secondary"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-zinc-500" />
-            Аудит рисков
-          </button>
-          <button
-            onClick={() => setActiveTab('budget')}
-            className="btn-secondary"
-          >
-            Управление сметой
-          </button>
         </div>
       </div>
     </div>

@@ -5,7 +5,10 @@ import {
   GuestItem,
   TeamMember,
   ContractorItem,
-  SurveyResponse
+  SurveyResponse,
+  KanbanStage,
+  MarketplaceItem,
+  BroadcastMessage
 } from '../types/event';
 
 // Helper to calculate dates relative to today
@@ -172,7 +175,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     assigneeId: 'tm-1',
     deadline: getRelativeDateString(-3), // OVERDUE!
     priority: 'critical',
-    status: 'in_progress',
+    status: 'stage-evt-1-in_progress',
     comments: [
       {
         id: 'comm-1',
@@ -196,7 +199,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     assigneeId: 'tm-2',
     deadline: getRelativeDateString(-1), // OVERDUE!
     priority: 'high',
-    status: 'todo',
+    status: 'stage-evt-1-todo',
     comments: [
       {
         id: 'comm-3',
@@ -214,7 +217,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     assigneeId: 'tm-4',
     deadline: getRelativeDateString(2),
     priority: 'high',
-    status: 'in_progress',
+    status: 'stage-evt-1-in_progress',
     comments: [
       {
         id: 'comm-4',
@@ -232,7 +235,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     assigneeId: 'tm-3',
     deadline: getRelativeDateString(5),
     priority: 'medium',
-    status: 'in_progress',
+    status: 'stage-evt-1-in_progress',
     comments: []
   },
   {
@@ -243,7 +246,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     assigneeId: 'tm-3',
     deadline: getRelativeDateString(9),
     priority: 'medium',
-    status: 'todo',
+    status: 'stage-evt-1-todo',
     comments: []
   },
   {
@@ -254,7 +257,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     assigneeId: 'tm-4',
     deadline: getRelativeDateString(-10),
     priority: 'medium',
-    status: 'done',
+    status: 'stage-evt-1-done',
     comments: [
       {
         id: 'comm-5',
@@ -272,7 +275,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     assigneeId: 'tm-1',
     deadline: getRelativeDateString(-5),
     priority: 'high',
-    status: 'done',
+    status: 'stage-evt-1-done',
     comments: []
   },
   {
@@ -283,7 +286,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     assigneeId: 'tm-1',
     deadline: getRelativeDateString(11),
     priority: 'low',
-    status: 'review',
+    status: 'stage-evt-1-review',
     comments: []
   }
 ];
@@ -530,5 +533,149 @@ export const INITIAL_SURVEYS: SurveyResponse[] = [
     rating: 5,
     feedback: 'Искренний восторг от атмосферы и нетворкинга. Приложение и билеты сделаны максимально современно и красиво.',
     submittedAt: new Date(Date.now() - 3600000 * 1).toISOString()
+  }
+];
+
+export const INITIAL_KANBAN_STAGES: KanbanStage[] = [
+  // evt-1
+  { id: 'stage-evt-1-todo', eventId: 'evt-1', title: 'К выполнению', color: 'zinc', order: 0 },
+  { id: 'stage-evt-1-in_progress', eventId: 'evt-1', title: 'В работе', color: 'amber', order: 1 },
+  { id: 'stage-evt-1-review', eventId: 'evt-1', title: 'На проверке', color: 'blue', order: 2 },
+  { id: 'stage-evt-1-done', eventId: 'evt-1', title: 'Готово', color: 'emerald', order: 3, isCompletedStage: true },
+
+  // evt-2
+  { id: 'stage-evt-2-todo', eventId: 'evt-2', title: 'К выполнению', color: 'zinc', order: 0 },
+  { id: 'stage-evt-2-in_progress', eventId: 'evt-2', title: 'В работе', color: 'amber', order: 1 },
+  { id: 'stage-evt-2-review', eventId: 'evt-2', title: 'На проверке', color: 'blue', order: 2 },
+  { id: 'stage-evt-2-done', eventId: 'evt-2', title: 'Готово', color: 'emerald', order: 3, isCompletedStage: true },
+
+  // evt-3
+  { id: 'stage-evt-3-todo', eventId: 'evt-3', title: 'К выполнению', color: 'zinc', order: 0 },
+  { id: 'stage-evt-3-in_progress', eventId: 'evt-3', title: 'В работе', color: 'amber', order: 1 },
+  { id: 'stage-evt-3-review', eventId: 'evt-3', title: 'На проверке', color: 'blue', order: 2 },
+  { id: 'stage-evt-3-done', eventId: 'evt-3', title: 'Готово', color: 'emerald', order: 3, isCompletedStage: true }
+];
+
+export const INITIAL_MARKETPLACE_ITEMS: MarketplaceItem[] = [
+  {
+    id: 'mp-1',
+    category: 'venue',
+    serviceType: 'Конгресс-холл и площадки',
+    title: 'Конгресс-центр «СитиХолл Экспо»',
+    description: 'Флагманская площадка с залом-трансформером, 4K LED-стеной 12x4м, зонами кофе-брейков и подземным паркингом на 250 мест.',
+    rating: 4.9,
+    reviewsCount: 38,
+    capacity: 500,
+    price: 950000,
+    city: 'Москва',
+    format: 'Офлайн / Гибрид',
+    tags: ['Wi-Fi 1 Гбит/с', 'LED Экран', 'Сцена', 'Паркинг', 'Гримерки', 'Кейтеринг-зона'],
+    contactPerson: 'Виктор Васильев',
+    phone: '+7 (495) 123-45-67',
+    email: 'booking@cityhall-expo.ru'
+  },
+  {
+    id: 'mp-2',
+    category: 'venue',
+    serviceType: 'Лофт и креативные пространства',
+    title: 'Лофт-пространство «Красный Октябрь Event»',
+    description: 'Стильное трехуровневое арт-пространство с панорамной верандой на набережную, историческим кирпичом и профессиональным светом.',
+    rating: 4.8,
+    reviewsCount: 26,
+    capacity: 220,
+    price: 380000,
+    city: 'Москва',
+    format: 'Офлайн / Воркшопы',
+    tags: ['Панорамная веранда', 'Барная стойка', 'Световой пульт', 'Звук 8 кВт', 'Кухня'],
+    contactPerson: 'Мария Воронова',
+    phone: '+7 (495) 765-43-21',
+    email: 'events@redoktyabr-loft.ru'
+  },
+  {
+    id: 'mp-3',
+    category: 'venue',
+    serviceType: 'Технопарки и инновационные хабы',
+    title: 'Технопарк «Сколково Резиденция»',
+    description: 'Инновационный атриум для хакатонов и технологических форумов с резервным каналом связи, 40 переговорными и зоной отдыха.',
+    rating: 5.0,
+    reviewsCount: 44,
+    capacity: 350,
+    price: 650000,
+    city: 'Москва / Сколково',
+    format: 'Хакатон / Конференция',
+    tags: ['Хакатон-зона 24/7', 'Резервный LTE', '40 Переговорных', 'Лаборатории', 'Охрана'],
+    contactPerson: 'Андрей Ковалев',
+    phone: '+7 (495) 999-88-77',
+    email: 'skolkovo.events@residence.tech'
+  },
+  {
+    id: 'mp-4',
+    category: 'contractor',
+    serviceType: 'Техническое обеспечение и звук',
+    title: '«ProSound & Stream Lab»',
+    description: 'Линейные массивы D&B, цифровые микшеры Yamaha, беспроводные микрофоны Shure Axient и бесперебойная онлайн-трансляция.',
+    rating: 4.9,
+    reviewsCount: 52,
+    price: 420000,
+    city: 'Москва',
+    format: 'Под ключ',
+    tags: ['Линейный массив', '4K Стриминг', 'Световые головы', 'Звукорежиссер', 'Синхронный перевод'],
+    contactPerson: 'Денис Соколов',
+    phone: '+7 (495) 333-22-11',
+    email: 'hire@prosound-stream.ru'
+  },
+  {
+    id: 'mp-5',
+    category: 'contractor',
+    serviceType: 'Кейтеринг и питание',
+    title: '«GrandCatering Gourmet Event»',
+    description: 'Премиальный выездной ресторан: кофе-брейки спешелти зерна, горячие сеты, гала-ужин, веганское и безглютеновое меню.',
+    rating: 4.8,
+    reviewsCount: 31,
+    capacity: 600,
+    price: 480000,
+    city: 'Москва / Санкт-Петербург',
+    format: 'Фуршет / Банкет',
+    tags: ['Specialty кофе', 'Веган-меню', 'Фарфор и стекло', 'Официанты', 'Ночная доставка'],
+    contactPerson: 'Ксения Лебедева',
+    phone: '+7 (495) 444-55-66',
+    email: 'order@grandcatering.pro'
+  },
+  {
+    id: 'mp-6',
+    category: 'contractor',
+    serviceType: 'Мерч и полиграфия',
+    title: '«ArtMerch Factory & Print»',
+    description: 'Производство мерча полного цикла: оверсайз-худи, ланьярды, NFC-бейджи, эко-блокноты и наградные стелы из акрила.',
+    rating: 4.9,
+    reviewsCount: 40,
+    price: 240000,
+    city: 'Москва',
+    format: 'Доставка 48ч',
+    tags: ['Шелкография', 'NFC-бейджи', 'Худи плотностью 420г', 'Эко-материалы', 'Срочная печать'],
+    contactPerson: 'Глеб Данилов',
+    phone: '+7 (495) 555-01-99',
+    email: 'team@artmerch-factory.ru'
+  }
+];
+
+export const INITIAL_BROADCASTS: BroadcastMessage[] = [
+  {
+    id: 'bc-1',
+    eventId: 'evt-1',
+    title: 'Напоминание о старте чек-ина и расписание хакатона',
+    message: 'Уважаемые участники! Регистрация на площадке Технопарка откроется в 09:30. Пожалуйста, подготовьте персональный QR-код из билета для ускоренного прохода.',
+    audience: 'all',
+    sentAt: new Date(Date.now() - 3600000 * 5).toISOString(),
+    recipientCount: 11
+  },
+  {
+    id: 'bc-2',
+    eventId: 'evt-1',
+    title: 'Инструкции для VIP-гостей и менторской сессии',
+    message: 'Приветствуем! Менторская зона расположена на 3 этаже в зале Альфа. Начало первого питч-сеанса в 14:00.',
+    audience: 'vip',
+    sentAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+    recipientCount: 2
   }
 ];

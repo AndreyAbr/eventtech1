@@ -45,4 +45,19 @@
   .card-surface {
     @apply bg-white border border-zinc-200 rounded-lg shadow-[0_1px_2px_rgba(0,0,0,0.03)];
   }
+
+  @keyframes dropSettle {
+    0% {
+      transform: scale(1.03);
+      background-color: #F4F4F5;
+    }
+    100% {
+      transform: scale(1);
+      background-color: #FFFFFF;
+    }
+  }
+
+  .animate-drop-settle {
+    animation: dropSettle 350ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
 }

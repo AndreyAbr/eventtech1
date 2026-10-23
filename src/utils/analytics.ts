@@ -1,4 +1,4 @@
-import { EventEntity, TaskItem, BudgetItem, GuestItem, SurveyResponse } from '../types/event';
+import { EventEntity, TaskItem, BudgetItem, GuestItem, SurveyResponse, KanbanStage } from '../types/event';
 
 export interface EventMetrics {
   readinessPercent: number;
@@ -19,8 +19,8 @@ export interface EventMetrics {
   surveysCount: number;
 }
 
-export function isTaskOverdue(deadline: string, status: string): boolean {
-  if (status === 'done') return false;
+export function isTaskOverdue(deadline: string, status: string, isCompleted?: boolean): boolean {
+  if (status === 'done' || status.endsWith('-done') || isCompleted) return false;
   if (!deadline) return false;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -34,7 +34,8 @@ export function calculateEventMetrics(
   tasks: TaskItem[] = [],
   budget: BudgetItem[] = [],
   guests: GuestItem[] = [],
-  surveys: SurveyResponse[] = []
+  surveys: SurveyResponse[] = [],
+  stages: KanbanStage[] = []
 ): EventMetrics {
   if (!event) {
     return {
@@ -58,13 +59,17 @@ export function calculateEventMetrics(
   }
 
   // Tasks metrics
+  const completedStageIds = new Set(stages.filter(s => s.isCompletedStage).map(s => s.id));
+  const isTaskCompleted = (t: TaskItem) =>
+    t.status === 'done' || t.status.endsWith('-done') || completedStageIds.has(t.status);
+
   const totalTasksCount = tasks.length;
-  const completedTasksCount = tasks.filter(t => t.status === 'done').length;
+  const completedTasksCount = tasks.filter(isTaskCompleted).length;
   const readinessPercent = totalTasksCount > 0
     ? Math.round((completedTasksCount / totalTasksCount) * 100)
     : 0;
 
-  const overdueTasks = tasks.filter(t => isTaskOverdue(t.deadline, t.status));
+  const overdueTasks = tasks.filter(t => !isTaskCompleted(t) && isTaskOverdue(t.deadline, t.status));
   const overdueTasksCount = overdueTasks.length;
   const criticalOverdueTasksCount = overdueTasks.filter(t => t.priority === 'critical').length;
 

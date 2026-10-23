@@ -1,31 +1,87 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Kanban,
   List,
   Plus,
   MessageSquare,
-  User,
-  Calendar,
   X,
   Trash2,
   Filter,
   Send,
-  Check
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Edit2,
+  CheckSquare,
+  GripVertical
 } from 'lucide-react';
 import { useEventContext } from '../../context/EventContext';
-import { TaskItem, TaskPriority, TaskStatus } from '../../types/event';
+import { TaskItem, TaskPriority, TaskStatus, KanbanStage, KanbanStageColor } from '../../types/event';
 import { formatDate, isTaskOverdue } from '../../utils/analytics';
+
+const STAGE_COLOR_MAP: Record<KanbanStageColor, { bg: string; border: string; bar: string; dot: string; lightBg: string }> = {
+  zinc: {
+    bg: 'bg-zinc-500',
+    border: 'border-zinc-400',
+    bar: 'bg-zinc-500',
+    dot: 'bg-zinc-400',
+    lightBg: 'bg-zinc-100'
+  },
+  blue: {
+    bg: 'bg-blue-500',
+    border: 'border-blue-400',
+    bar: 'bg-blue-500',
+    dot: 'bg-blue-500',
+    lightBg: 'bg-blue-50'
+  },
+  amber: {
+    bg: 'bg-amber-500',
+    border: 'border-amber-400',
+    bar: 'bg-amber-500',
+    dot: 'bg-amber-500',
+    lightBg: 'bg-amber-50'
+  },
+  emerald: {
+    bg: 'bg-emerald-500',
+    border: 'border-emerald-400',
+    bar: 'bg-emerald-500',
+    dot: 'bg-emerald-500',
+    lightBg: 'bg-emerald-50'
+  },
+  purple: {
+    bg: 'bg-purple-500',
+    border: 'border-purple-400',
+    bar: 'bg-purple-500',
+    dot: 'bg-purple-500',
+    lightBg: 'bg-purple-50'
+  },
+  rose: {
+    bg: 'bg-rose-500',
+    border: 'border-rose-400',
+    bar: 'bg-rose-500',
+    dot: 'bg-rose-500',
+    lightBg: 'bg-rose-50'
+  }
+};
 
 export const TasksView: React.FC = () => {
   const {
     activeEvent,
     activeTasks,
     activeTeam,
+    activeKanbanStages,
     addTask,
     updateTask,
+    updateTaskStatus,
     deleteTask,
     addTaskComment,
-    currentUserRole
+    addKanbanStage,
+    updateKanbanStage,
+    deleteKanbanStage,
+    moveKanbanStage,
+    currentUserRole,
+    selectedTeamMemberFilter,
+    setSelectedTeamMemberFilter
   } = useEventContext();
 
   const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
@@ -33,10 +89,37 @@ export const TasksView: React.FC = () => {
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [filterOverdueOnly, setFilterOverdueOnly] = useState<boolean>(false);
 
+  // Drag and Drop state
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+  const [dragOverStageId, setDragOverStageId] = useState<string | null>(null);
+  const [lastDroppedTaskId, setLastDroppedTaskId] = useState<string | null>(null);
+
+  // Quick task per stage state (stageId -> string)
+  const [quickTaskStageId, setQuickTaskStageId] = useState<string | null>(null);
+  const [quickTaskTitle, setQuickTaskTitle] = useState<string>('');
+
+  // Editing stage state
+  const [editingStageId, setEditingStageId] = useState<string | null>(null);
+  const [editingStageTitle, setEditingStageTitle] = useState<string>('');
+  const [editingStageColor, setEditingStageColor] = useState<KanbanStageColor>('blue');
+  const [editingIsCompleted, setEditingIsCompleted] = useState<boolean>(false);
+
+  // New stage form state
+  const [isAddingStage, setIsAddingStage] = useState(false);
+  const [newStageTitle, setNewStageTitle] = useState('');
+  const [newStageColor, setNewStageColor] = useState<KanbanStageColor>('blue');
+
   // Modals state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
   const [commentInput, setCommentInput] = useState('');
+
+  // Synchronize team member filter from context if provided
+  useEffect(() => {
+    if (selectedTeamMemberFilter) {
+      setFilterAssignee(selectedTeamMemberFilter);
+    }
+  }, [selectedTeamMemberFilter]);
 
   // New task form state
   const [newTaskData, setNewTaskData] = useState<{
@@ -52,8 +135,15 @@ export const TasksView: React.FC = () => {
     assigneeId: activeTeam[0]?.id || 'tm-1',
     deadline: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0],
     priority: 'medium',
-    status: 'todo'
+    status: activeKanbanStages[0]?.id || 'todo'
   });
+
+  // Ensure default stage in newTaskData is up to date
+  useEffect(() => {
+    if (activeKanbanStages.length > 0 && !activeKanbanStages.some(s => s.id === newTaskData.status)) {
+      setNewTaskData(prev => ({ ...prev, status: activeKanbanStages[0].id }));
+    }
+  }, [activeKanbanStages]);
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,8 +166,26 @@ export const TasksView: React.FC = () => {
       assigneeId: activeTeam[0]?.id || 'tm-1',
       deadline: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0],
       priority: 'medium',
-      status: 'todo'
+      status: activeKanbanStages[0]?.id || 'todo'
     });
+  };
+
+  const handleQuickTaskSubmit = (stageId: string, e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickTaskTitle.trim() || !activeEvent) return;
+
+    addTask({
+      eventId: activeEvent.id,
+      title: quickTaskTitle.trim(),
+      description: '',
+      assigneeId: activeTeam[0]?.id || 'tm-1',
+      deadline: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0],
+      priority: 'medium',
+      status: stageId
+    });
+
+    setQuickTaskTitle('');
+    setQuickTaskStageId(null);
   };
 
   const handleAddComment = (e: React.FormEvent) => {
@@ -100,6 +208,89 @@ export const TasksView: React.FC = () => {
     setCommentInput('');
   };
 
+  const handleStartEditStage = (stage: KanbanStage) => {
+    setEditingStageId(stage.id);
+    setEditingStageTitle(stage.title);
+    setEditingStageColor(stage.color || 'blue');
+    setEditingIsCompleted(!!stage.isCompletedStage);
+  };
+
+  const handleSaveStageEdit = (stageId: string) => {
+    if (!editingStageTitle.trim()) return;
+    updateKanbanStage(stageId, {
+      title: editingStageTitle.trim(),
+      color: editingStageColor,
+      isCompletedStage: editingIsCompleted
+    });
+    setEditingStageId(null);
+  };
+
+  const handleCreateNewStage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newStageTitle.trim() || !activeEvent) return;
+    addKanbanStage(activeEvent.id, newStageTitle.trim(), newStageColor);
+    setNewStageTitle('');
+    setIsAddingStage(false);
+  };
+
+  // Helper to determine if a task matches a stage
+  const isTaskInStage = (task: TaskItem, stage: KanbanStage): boolean => {
+    if (task.status === stage.id) return true;
+    // Fallback checks for legacy status format ('todo', 'in_progress', 'review', 'done')
+    if (stage.id.endsWith('-' + task.status)) return true;
+    if (task.status === 'done' && stage.isCompletedStage) return true;
+    if (task.status === 'todo' && stage.order === 0) return true;
+    return false;
+  };
+
+  // Drag and Drop handlers
+  const handleDragStart = (e: React.DragEvent, taskId: string) => {
+    if (currentUserRole === 'guest') return;
+    e.dataTransfer.setData('text/plain', taskId);
+    e.dataTransfer.effectAllowed = 'move';
+    setDraggedTaskId(taskId);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedTaskId(null);
+    setDragOverStageId(null);
+  };
+
+  const handleDragOver = (e: React.DragEvent, stageId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverStageId !== stageId) {
+      setDragOverStageId(stageId);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent, stageId: string) => {
+    // Check if leaving to outside the column
+    const related = e.relatedTarget as HTMLElement;
+    if (!related || !e.currentTarget.contains(related)) {
+      if (dragOverStageId === stageId) {
+        setDragOverStageId(null);
+      }
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, targetStage: KanbanStage) => {
+    e.preventDefault();
+    const taskId = e.dataTransfer.getData('text/plain') || draggedTaskId;
+    setDragOverStageId(null);
+    setDraggedTaskId(null);
+
+    if (!taskId) return;
+
+    updateTaskStatus(taskId, targetStage.id);
+    setLastDroppedTaskId(taskId);
+
+    // Remove settle animation class after 450ms
+    setTimeout(() => {
+      setLastDroppedTaskId(null);
+    }, 450);
+  };
+
   // Filter tasks
   const filteredTasks = activeTasks.filter(task => {
     if (filterAssignee !== 'all' && task.assigneeId !== filterAssignee) return false;
@@ -113,18 +304,13 @@ export const TasksView: React.FC = () => {
     return member ? member.fullName : 'Не назначен';
   };
 
-  const columns: { id: TaskStatus; title: string; dotColor: string }[] = [
-    { id: 'todo', title: 'К выполнению', dotColor: 'bg-zinc-400' },
-    { id: 'in_progress', title: 'В работе', dotColor: 'bg-amber-500' },
-    { id: 'review', title: 'На проверке', dotColor: 'bg-blue-500' },
-    { id: 'done', title: 'Готово', dotColor: 'bg-emerald-500' }
-  ];
+  const colorOptions: KanbanStageColor[] = ['zinc', 'blue', 'amber', 'emerald', 'purple', 'rose'];
 
   return (
     <div className="space-y-4">
       {/* Top Controls Toolbar */}
       <div className="card-surface p-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
-        {/* Left: View Mode Toggle & Overdue Filter */}
+        {/* Left: View Mode Toggle, Overdue Filter & Active Assignee Indicator */}
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center bg-zinc-100 p-0.5 rounded-md border border-zinc-200">
             <button
@@ -162,6 +348,22 @@ export const TasksView: React.FC = () => {
               Только просроченные
             </span>
           </label>
+
+          {selectedTeamMemberFilter && (
+            <div className="flex items-center gap-1.5 bg-zinc-100 text-zinc-800 px-2 py-0.5 rounded text-xs border border-zinc-200">
+              <span>Сотрудник: {getAssigneeName(selectedTeamMemberFilter)}</span>
+              <button
+                onClick={() => {
+                  setSelectedTeamMemberFilter(null);
+                  setFilterAssignee('all');
+                }}
+                className="text-zinc-400 hover:text-zinc-700"
+                title="Сбросить фильтр"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right: Filters & Add Button */}
@@ -170,7 +372,12 @@ export const TasksView: React.FC = () => {
           <select
             aria-label="Фильтр по ответственному"
             value={filterAssignee}
-            onChange={e => setFilterAssignee(e.target.value)}
+            onChange={e => {
+              setFilterAssignee(e.target.value);
+              if (e.target.value === 'all') {
+                setSelectedTeamMemberFilter(null);
+              }
+            }}
             className="input-base h-8 text-xs cursor-pointer"
           >
             <option value="all">Все ответственные</option>
@@ -206,97 +413,359 @@ export const TasksView: React.FC = () => {
 
       {/* Kanban Board View */}
       {viewMode === 'kanban' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3 items-start">
-          {columns.map(col => {
-            const colTasks = filteredTasks.filter(t => t.status === col.id);
+        <div className="flex gap-3 overflow-x-auto pb-4 items-start select-none">
+          {activeKanbanStages.map((stage, stageIndex) => {
+            const stageTasks = filteredTasks.filter(t => isTaskInStage(t, stage));
+            const colorStyle = STAGE_COLOR_MAP[stage.color || 'blue'];
+            const isDragOver = dragOverStageId === stage.id;
+            const isEditing = editingStageId === stage.id;
+
             return (
               <div
-                key={col.id}
-                className="bg-zinc-100/70 border border-zinc-200/80 rounded-lg p-2.5 flex flex-col min-h-[500px]"
+                key={stage.id}
+                onDragOver={e => handleDragOver(e, stage.id)}
+                onDragLeave={e => handleDragLeave(e, stage.id)}
+                onDrop={e => handleDrop(e, stage)}
+                className={`w-72 shrink-0 rounded-lg flex flex-col min-h-[540px] transition-all duration-200 border relative ${
+                  isDragOver
+                    ? 'bg-zinc-100 ring-2 ring-zinc-900/20 border-zinc-400'
+                    : 'bg-zinc-100/70 border-zinc-200/90'
+                }`}
               >
+                {/* 3px Top Colored Line */}
+                <div className={`h-[3px] rounded-t-lg w-full ${colorStyle.bar}`} />
+
                 {/* Column Header */}
-                <div className="flex items-center justify-between pb-2 mb-2 border-b border-zinc-200/80">
-                  <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${col.dotColor}`}></span>
-                    <h3 className="text-xs font-semibold text-zinc-700">
-                      {col.title}
-                    </h3>
-                  </div>
-                  <span className="text-xs font-mono text-zinc-400">
-                    {colTasks.length}
-                  </span>
+                <div className="p-3 border-b border-zinc-200/80">
+                  {isEditing ? (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        autoFocus
+                        value={editingStageTitle}
+                        onChange={e => setEditingStageTitle(e.target.value)}
+                        onKeyDown={e => {
+                          if (e.key === 'Enter') handleSaveStageEdit(stage.id);
+                          if (e.key === 'Escape') setEditingStageId(null);
+                        }}
+                        className="input-base w-full text-xs font-semibold"
+                        placeholder="Название этапа"
+                      />
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-zinc-500">Цвет:</span>
+                        {colorOptions.map(c => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => setEditingStageColor(c)}
+                            className={`w-4 h-4 rounded-full ${STAGE_COLOR_MAP[c].bg} ${
+                              editingStageColor === c ? 'ring-2 ring-zinc-900 ring-offset-1' : ''
+                            }`}
+                          />
+                        ))}
+                      </div>
+
+                      <label className="flex items-center gap-1.5 cursor-pointer text-[11px] text-zinc-600">
+                        <input
+                          type="checkbox"
+                          checked={editingIsCompleted}
+                          onChange={e => setEditingIsCompleted(e.target.checked)}
+                          className="rounded border-zinc-300 text-zinc-900 w-3.5 h-3.5"
+                        />
+                        <span>Финальный этап (% готовности)</span>
+                      </label>
+
+                      <div className="flex items-center justify-end gap-1.5 pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setEditingStageId(null)}
+                          className="px-2 py-0.5 text-xs text-zinc-600 hover:text-zinc-900"
+                        >
+                          Отмена
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleSaveStageEdit(stage.id)}
+                          className="px-2.5 py-0.5 text-xs bg-zinc-900 text-white rounded font-medium hover:bg-zinc-800"
+                        >
+                          Сохранить
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${colorStyle.dot}`} />
+                        <h3
+                          onClick={() => handleStartEditStage(stage)}
+                          className="text-xs font-semibold text-zinc-800 truncate cursor-pointer hover:underline"
+                          title="Нажмите для переименования этапа"
+                        >
+                          {stage.title}
+                        </h3>
+                        {stage.isCompletedStage && (
+                          <span title="Задачи в этом этапе считаются завершенными">
+                            <CheckSquare className="w-3 h-3 text-emerald-600 shrink-0" />
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        <span className="text-xs font-mono text-zinc-500 bg-zinc-200/70 px-1.5 py-0.2 rounded text-[11px]">
+                          {stageTasks.length}
+                        </span>
+
+                        {currentUserRole !== 'guest' && (
+                          <div className="flex items-center text-zinc-400">
+                            <button
+                              disabled={stageIndex === 0}
+                              onClick={() => moveKanbanStage(stage.id, 'left')}
+                              className="p-1 hover:text-zinc-700 disabled:opacity-20 disabled:hover:text-zinc-400"
+                              title="Сдвинуть этап влево"
+                            >
+                              <ChevronLeft className="w-3 h-3" />
+                            </button>
+                            <button
+                              disabled={stageIndex === activeKanbanStages.length - 1}
+                              onClick={() => moveKanbanStage(stage.id, 'right')}
+                              className="p-1 hover:text-zinc-700 disabled:opacity-20 disabled:hover:text-zinc-400"
+                              title="Сдвинуть этап вправо"
+                            >
+                              <ChevronRight className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={() => handleStartEditStage(stage)}
+                              className="p-1 hover:text-zinc-700"
+                              title="Редактировать этап"
+                            >
+                              <Edit2 className="w-3 h-3" />
+                            </button>
+                            {activeKanbanStages.length > 1 && (
+                              <button
+                                onClick={() => deleteKanbanStage(stage.id)}
+                                className="p-1 hover:text-red-600"
+                                title="Удалить этап"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Tasks List */}
-                <div className="space-y-2 flex-1 overflow-y-auto">
-                  {colTasks.length === 0 ? (
-                    <div className="h-24 flex items-center justify-center text-xs text-zinc-400 border border-dashed border-zinc-200 rounded-md">
-                      Пусто
+                <div className="p-2.5 space-y-2 flex-1 overflow-y-auto max-h-[calc(100vh-280px)]">
+                  {stageTasks.length === 0 && !isDragOver && (
+                    <div className="h-20 flex items-center justify-center text-xs text-zinc-400 border border-dashed border-zinc-200 rounded-md">
+                      Перетащите задачу сюда
                     </div>
-                  ) : (
-                    colTasks.map((task, idx) => {
-                      const isOverdue = isTaskOverdue(task.deadline, task.status);
-                      const taskIdDisplay = `TSK-${String(idx + 1).padStart(2, '0')}`;
-                      return (
-                        <div
-                          key={task.id}
-                          onClick={() => setSelectedTask(task)}
-                          className="bg-white border border-zinc-200 rounded-md p-3 hover:border-zinc-300 transition-colors shadow-sm cursor-pointer group"
-                        >
-                          {/* Top Row: Task ID & Priority */}
-                          <div className="flex items-center justify-between gap-2">
+                  )}
+
+                  {/* Drag drop slot indicator when hovering */}
+                  {isDragOver && (
+                    <div className="h-16 rounded-md border-2 border-dashed border-zinc-400 bg-zinc-200/50 my-1.5 flex items-center justify-center text-[11px] font-mono text-zinc-600 animate-pulse">
+                      Поместить в «{stage.title}»
+                    </div>
+                  )}
+
+                  {stageTasks.map((task, idx) => {
+                    const isOverdue = isTaskOverdue(task.deadline, task.status);
+                    const taskIdDisplay = `TSK-${String(idx + 1).padStart(2, '0')}`;
+                    const isBeingDragged = draggedTaskId === task.id;
+                    const isJustDropped = lastDroppedTaskId === task.id;
+
+                    return (
+                      <div
+                        key={task.id}
+                        draggable={currentUserRole !== 'guest'}
+                        onDragStart={e => handleDragStart(e, task.id)}
+                        onDragEnd={handleDragEnd}
+                        onClick={() => setSelectedTask(task)}
+                        className={`bg-white border rounded-md p-3 transition-all duration-150 shadow-sm group select-none ${
+                          currentUserRole !== 'guest' ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'
+                        } ${
+                          isBeingDragged
+                            ? 'opacity-40 border-2 border-dashed border-zinc-300 bg-zinc-100/50 scale-[0.98]'
+                            : 'border-zinc-200 hover:border-zinc-300'
+                        } ${
+                          isJustDropped ? 'animate-drop-settle' : ''
+                        }`}
+                      >
+                        {/* Top Row: Task ID & Priority */}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5">
+                            {currentUserRole !== 'guest' && (
+                              <GripVertical className="w-3 h-3 text-zinc-300 group-hover:text-zinc-500 -ml-1 shrink-0" />
+                            )}
                             <span className="font-mono text-[11px] text-zinc-400">
                               {taskIdDisplay}
                             </span>
-                            <span className={`text-[10px] font-medium uppercase ${
-                              task.priority === 'critical'
-                                ? 'text-red-600 font-semibold'
-                                : task.priority === 'high'
-                                ? 'text-amber-600'
-                                : 'text-zinc-500'
-                            }`}>
-                              {task.priority === 'critical' ? 'Критично' : task.priority === 'high' ? 'Высокий' : 'Обычный'}
-                            </span>
                           </div>
 
-                          {/* Task Title */}
-                          <h4 className="text-sm font-medium text-zinc-900 mt-1 leading-snug line-clamp-2 group-hover:text-zinc-800">
-                            {task.title}
-                          </h4>
+                          <span className={`text-[10px] font-medium uppercase ${
+                            task.priority === 'critical'
+                              ? 'text-red-600 font-semibold'
+                              : task.priority === 'high'
+                              ? 'text-amber-600'
+                              : 'text-zinc-500'
+                          }`}>
+                            {task.priority === 'critical' ? 'Критично' : task.priority === 'high' ? 'Высокий' : 'Обычный'}
+                          </span>
+                        </div>
 
-                          {/* Bottom Row: Assignee, Comments, Deadline */}
-                          <div className="mt-2.5 pt-2 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-500">
-                            <span className="truncate max-w-[90px]" title={getAssigneeName(task.assigneeId)}>
-                              {getAssigneeName(task.assigneeId).split(' ')[0]}
-                            </span>
+                        {/* Task Title */}
+                        <h4 className="text-sm font-medium text-zinc-900 mt-1 leading-snug line-clamp-2 group-hover:text-zinc-800">
+                          {task.title}
+                        </h4>
 
-                            <div className="flex items-center gap-2 font-mono">
-                              {task.comments.length > 0 && (
-                                <span className="flex items-center gap-1 text-zinc-400">
-                                  <MessageSquare className="w-3 h-3" />
-                                  {task.comments.length}
-                                </span>
-                              )}
+                        {/* Bottom Row: Assignee, Comments, Deadline */}
+                        <div className="mt-2.5 pt-2 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-500">
+                          <span className="truncate max-w-[90px]" title={getAssigneeName(task.assigneeId)}>
+                            {getAssigneeName(task.assigneeId).split(' ')[0]}
+                          </span>
 
-                              {isOverdue ? (
-                                <span className="font-mono text-[11px] px-1.5 py-0.2 rounded bg-red-50 text-red-700 border border-red-200 font-medium">
-                                  {formatDate(task.deadline)}
-                                </span>
-                              ) : (
-                                <span className="text-zinc-400">
-                                  {formatDate(task.deadline)}
-                                </span>
-                              )}
-                            </div>
+                          <div className="flex items-center gap-2 font-mono">
+                            {task.comments.length > 0 && (
+                              <span className="flex items-center gap-1 text-zinc-400">
+                                <MessageSquare className="w-3 h-3" />
+                                {task.comments.length}
+                              </span>
+                            )}
+
+                            {isOverdue ? (
+                              <span className="font-mono text-[11px] px-1.5 py-0.2 rounded bg-red-50 text-red-700 border border-red-200 font-medium">
+                                {formatDate(task.deadline)}
+                              </span>
+                            ) : (
+                              <span className="text-zinc-400">
+                                {formatDate(task.deadline)}
+                              </span>
+                            )}
                           </div>
                         </div>
-                      );
-                    })
-                  )}
+                      </div>
+                    );
+                  })}
                 </div>
+
+                {/* Bottom Quick Task Input / Button */}
+                {currentUserRole !== 'guest' && (
+                  <div className="p-2 border-t border-zinc-200/70 bg-zinc-50/60 rounded-b-lg">
+                    {quickTaskStageId === stage.id ? (
+                      <form onSubmit={e => handleQuickTaskSubmit(stage.id, e)} className="space-y-1.5">
+                        <input
+                          type="text"
+                          autoFocus
+                          placeholder="Название задачи... (Enter)"
+                          value={quickTaskTitle}
+                          onChange={e => setQuickTaskTitle(e.target.value)}
+                          onKeyDown={e => {
+                            if (e.key === 'Escape') {
+                              setQuickTaskStageId(null);
+                              setQuickTaskTitle('');
+                            }
+                          }}
+                          className="input-base w-full text-xs h-7"
+                        />
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setQuickTaskStageId(null);
+                              setQuickTaskTitle('');
+                            }}
+                            className="text-[11px] text-zinc-500 hover:text-zinc-800 px-1.5 py-0.5"
+                          >
+                            Отмена
+                          </button>
+                          <button
+                            type="submit"
+                            className="text-[11px] bg-zinc-900 text-white rounded px-2 py-0.5 hover:bg-zinc-800 font-medium"
+                          >
+                            Добавить
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setQuickTaskStageId(stage.id);
+                          setQuickTaskTitle('');
+                        }}
+                        className="w-full py-1 text-xs text-zinc-500 hover:text-zinc-900 flex items-center justify-center gap-1 hover:bg-zinc-200/50 rounded transition-colors"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Быстрая задача</span>
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
+
+          {/* Right: Add New Kanban Stage Column */}
+          {currentUserRole !== 'guest' && (
+            <div className="w-64 shrink-0 rounded-lg border border-dashed border-zinc-300 bg-zinc-50/50 p-3 min-h-[140px] flex flex-col justify-start">
+              {isAddingStage ? (
+                <form onSubmit={handleCreateNewStage} className="space-y-2.5">
+                  <span className="text-xs font-semibold text-zinc-800 block">Новый этап канбана</span>
+                  <input
+                    type="text"
+                    autoFocus
+                    placeholder="Например: Тестирование"
+                    value={newStageTitle}
+                    onChange={e => setNewStageTitle(e.target.value)}
+                    className="input-base w-full text-xs"
+                  />
+                  <div>
+                    <span className="text-[10px] text-zinc-500 block mb-1">Цвет этапа:</span>
+                    <div className="flex items-center gap-1.5">
+                      {colorOptions.map(c => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setNewStageColor(c)}
+                          className={`w-4 h-4 rounded-full ${STAGE_COLOR_MAP[c].bg} ${
+                            newStageColor === c ? 'ring-2 ring-zinc-900 ring-offset-1' : ''
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end gap-1.5 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAddingStage(false);
+                        setNewStageTitle('');
+                      }}
+                      className="btn-secondary h-6 px-2 text-xs"
+                    >
+                      Отмена
+                    </button>
+                    <button
+                      type="submit"
+                      className="btn-primary h-6 px-2.5 text-xs"
+                    >
+                      Создать этап
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <button
+                  onClick={() => setIsAddingStage(true)}
+                  className="w-full h-24 border border-dashed border-zinc-300 rounded-md text-zinc-500 hover:text-zinc-900 hover:border-zinc-400 hover:bg-zinc-100/60 flex flex-col items-center justify-center gap-1.5 text-xs transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="font-medium">+ Добавить этап</span>
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -306,7 +775,7 @@ export const TasksView: React.FC = () => {
           <table className="w-full text-left text-xs border-collapse">
             <thead className="bg-zinc-50/80 border-b border-zinc-200 text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
               <tr>
-                <th className="py-2.5 px-3.5">Статус</th>
+                <th className="py-2.5 px-3.5">Статус (Этап)</th>
                 <th className="py-2.5 px-3.5">Задача</th>
                 <th className="py-2.5 px-3.5">Приоритет</th>
                 <th className="py-2.5 px-3.5">Ответственный</th>
@@ -335,13 +804,14 @@ export const TasksView: React.FC = () => {
                         <select
                           aria-label="Сменить статус задачи"
                           value={task.status}
-                          onChange={e => updateTask({ ...task, status: e.target.value as TaskStatus })}
-                          className="h-7 px-2 rounded border border-zinc-200 bg-white text-xs font-medium focus:outline-none focus:border-zinc-900"
+                          onChange={e => updateTaskStatus(task.id, e.target.value)}
+                          className="h-7 px-2 rounded border border-zinc-200 bg-white text-xs font-medium focus:outline-none focus:border-zinc-900 cursor-pointer"
                         >
-                          <option value="todo">К выполнению</option>
-                          <option value="in_progress">В работе</option>
-                          <option value="review">На проверке</option>
-                          <option value="done">Готово</option>
+                          {activeKanbanStages.map(st => (
+                            <option key={st.id} value={st.id}>
+                              {st.title}
+                            </option>
+                          ))}
                         </select>
                       </td>
 
@@ -427,20 +897,21 @@ export const TasksView: React.FC = () => {
 
               <div className="grid grid-cols-3 gap-2.5 bg-zinc-50/60 p-3 rounded border border-zinc-200 text-xs">
                 <div>
-                  <span className="text-[10px] uppercase font-medium text-zinc-400 block mb-1">Статус</span>
+                  <span className="text-[10px] uppercase font-medium text-zinc-400 block mb-1">Статус (Этап)</span>
                   <select
                     value={selectedTask.status}
                     onChange={e => {
-                      const updated = { ...selectedTask, status: e.target.value as TaskStatus };
+                      const updated = { ...selectedTask, status: e.target.value };
                       setSelectedTask(updated);
                       updateTask(updated);
                     }}
                     className="w-full h-7 px-1.5 rounded border border-zinc-200 bg-white text-xs"
                   >
-                    <option value="todo">К выполнению</option>
-                    <option value="in_progress">В работе</option>
-                    <option value="review">На проверке</option>
-                    <option value="done">Готово</option>
+                    {activeKanbanStages.map(st => (
+                      <option key={st.id} value={st.id}>
+                        {st.title}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
@@ -637,17 +1108,18 @@ export const TasksView: React.FC = () => {
 
                 <div>
                   <label className="block text-xs font-medium text-zinc-700 mb-1">
-                    Статус
+                    Статус (Этап)
                   </label>
                   <select
                     value={newTaskData.status}
-                    onChange={e => setNewTaskData({ ...newTaskData, status: e.target.value as TaskStatus })}
+                    onChange={e => setNewTaskData({ ...newTaskData, status: e.target.value })}
                     className="input-base w-full cursor-pointer"
                   >
-                    <option value="todo">К выполнению</option>
-                    <option value="in_progress">В работе</option>
-                    <option value="review">На проверке</option>
-                    <option value="done">Готово</option>
+                    {activeKanbanStages.map(st => (
+                      <option key={st.id} value={st.id}>
+                        {st.title}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

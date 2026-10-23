@@ -7,10 +7,18 @@ import {
   Phone,
   Trash2,
   X,
-  UserPlus
+  UserPlus,
+  Search,
+  SlidersHorizontal,
+  Star,
+  CheckCircle,
+  Building2,
+  Check,
+  ArrowRight,
+  Sparkles
 } from 'lucide-react';
 import { useEventContext } from '../../context/EventContext';
-import { TeamMember, ContractorItem, ContractorStatus } from '../../types/event';
+import { TeamMember, ContractorItem, ContractorStatus, MarketplaceItem } from '../../types/event';
 import { formatCurrency } from '../../utils/analytics';
 
 export const TeamContractorsView: React.FC = () => {
@@ -23,14 +31,28 @@ export const TeamContractorsView: React.FC = () => {
     deleteTeamMember,
     addContractor,
     updateContractor,
-    deleteContractor
+    deleteContractor,
+    marketplaceItems,
+    hireMarketplaceItem,
+    setActiveTab,
+    setSelectedTeamMemberFilter
   } = useEventContext();
 
-  const [activeSection, setActiveSection] = useState<'team' | 'contractors'>('team');
+  const [activeSection, setActiveSection] = useState<'team' | 'contractors' | 'marketplace'>('team');
 
   // Modals
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
   const [isContractorModalOpen, setIsContractorModalOpen] = useState(false);
+
+  // Marketplace search and filters
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterCategory, setFilterCategory] = useState<'all' | 'venue' | 'contractor'>('all');
+  const [maxPrice, setMaxPrice] = useState<number>(1000000);
+  const [minCapacity, setMinCapacity] = useState<number>(0);
+
+  // Comparison state (array of MarketplaceItem IDs, max 3)
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState(false);
 
   // Forms
   const [newMember, setNewMember] = useState<{
@@ -123,27 +145,59 @@ export const TeamContractorsView: React.FC = () => {
     });
   };
 
+  const toggleCompare = (id: string) => {
+    setCompareIds(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(x => x !== id);
+      }
+      if (prev.length >= 3) {
+        return [...prev.slice(1), id];
+      }
+      return [...prev, id];
+    });
+  };
+
+  // Filtered marketplace items
+  const filteredMarketplace = marketplaceItems.filter(item => {
+    if (filterCategory !== 'all' && item.category !== filterCategory) return false;
+    if (item.price > maxPrice) return false;
+    if (minCapacity > 0 && (item.capacity || 0) < minCapacity) return false;
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const match =
+        item.title.toLowerCase().includes(q) ||
+        item.serviceType.toLowerCase().includes(q) ||
+        item.city.toLowerCase().includes(q) ||
+        item.tags.some(t => t.toLowerCase().includes(q));
+      if (!match) return false;
+    }
+    return true;
+  });
+
+  const comparedItems = marketplaceItems.filter(item => compareIds.includes(item.id));
+
   return (
     <div className="space-y-4">
-      {/* Top Header & Switcher */}
+      {/* Top Header & 3-Tab Switcher */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 pb-3">
         <div>
           <h1 className="text-lg font-semibold text-zinc-900 tracking-tight">
-            Команда и подрядчики
+            Команда, подрядчики и каталог
           </h1>
           <p className="text-xs text-zinc-500">
-            Организационный комитет, зоны ответственности и внешние контрагенты
+            Организационный комитет, нанятые подрядчики и поиск поставщиков со сравнением
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <div className="flex items-center bg-zinc-100 p-0.5 rounded-md border border-zinc-200">
             <button
               onClick={() => setActiveSection('team')}
               className={`px-3 py-1 rounded text-xs font-medium transition-all ${
                 activeSection === 'team'
                   ? 'bg-white text-zinc-900 shadow-sm'
-                  : 'text-zinc-600 hover:text-zinc-900'
+                : 'text-zinc-600 hover:text-zinc-900'
               }`}
             >
               Команда ({activeTeam.length})
@@ -158,17 +212,29 @@ export const TeamContractorsView: React.FC = () => {
             >
               Подрядчики ({activeContractors.length})
             </button>
+            <button
+              onClick={() => setActiveSection('marketplace')}
+              className={`px-3 py-1 rounded text-xs font-medium transition-all ${
+                activeSection === 'marketplace'
+                  ? 'bg-white text-zinc-900 shadow-sm'
+                  : 'text-zinc-600 hover:text-zinc-900'
+              }`}
+            >
+              Каталог площадок ({marketplaceItems.length})
+            </button>
           </div>
 
-          {activeSection === 'team' ? (
+          {activeSection === 'team' && (
             <button onClick={() => setIsTeamModalOpen(true)} className="btn-primary">
               <UserPlus className="w-3.5 h-3.5" />
-              Добавить
+              Добавить в команду
             </button>
-          ) : (
+          )}
+
+          {activeSection === 'contractors' && (
             <button onClick={() => setIsContractorModalOpen(true)} className="btn-primary">
               <Plus className="w-3.5 h-3.5" />
-              Добавить
+              Добавить подрядчика
             </button>
           )}
         </div>
@@ -179,7 +245,7 @@ export const TeamContractorsView: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
           {activeTeam.map(member => {
             const memberTasks = activeTasks.filter(t => t.assigneeId === member.id);
-            const doneTasks = memberTasks.filter(t => t.status === 'done');
+            const doneTasks = memberTasks.filter(t => t.status === 'done' || t.status.endsWith('-done'));
             return (
               <div
                 key={member.id}
@@ -220,10 +286,21 @@ export const TeamContractorsView: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Clickable task count to filter TasksView */}
                 <div className="pt-2.5 border-t border-zinc-100 flex items-center justify-between text-xs">
-                  <span className="text-zinc-500 font-mono text-[11px]">
-                    Задачи: <strong className="text-zinc-800">{doneTasks.length}</strong>/{memberTasks.length}
-                  </span>
+                  <button
+                    onClick={() => {
+                      setSelectedTeamMemberFilter(member.id);
+                      setActiveTab('tasks');
+                    }}
+                    className="text-zinc-600 hover:text-zinc-900 font-mono text-[11px] hover:underline flex items-center gap-1 group"
+                    title="Показать все задачи этого сотрудника на доске"
+                  >
+                    <span>Задачи:</span>
+                    <strong className="text-zinc-900">{doneTasks.length}</strong>
+                    <span>/ {memberTasks.length}</span>
+                    <span className="text-zinc-400 group-hover:text-zinc-900">→</span>
+                  </button>
 
                   {activeTeam.length > 1 && (
                     <button
@@ -244,68 +321,386 @@ export const TeamContractorsView: React.FC = () => {
       {/* SECTION 2: CONTRACTORS */}
       {activeSection === 'contractors' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {activeContractors.map(cont => (
-            <div
-              key={cont.id}
-              className="card-surface p-4 flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <div>
-                    <h4 className="text-sm font-semibold text-zinc-900">
-                      {cont.companyName}
-                    </h4>
-                    <p className="text-xs text-zinc-500 mt-0.5">
-                      {cont.serviceType}
-                    </p>
+          {activeContractors.length === 0 ? (
+            <div className="col-span-2 py-12 text-center text-xs text-zinc-400 border border-dashed border-zinc-200 rounded-lg">
+              Подрядчики еще не добавлены. Наймите их из Каталога площадок или добавьте вручную.
+            </div>
+          ) : (
+            activeContractors.map(cont => (
+              <div
+                key={cont.id}
+                className="card-surface p-4 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div>
+                      <h4 className="text-sm font-semibold text-zinc-900">
+                        {cont.companyName}
+                      </h4>
+                      <p className="text-xs text-zinc-500 mt-0.5">
+                        {cont.serviceType}
+                      </p>
+                    </div>
+
+                    <select
+                      aria-label="Статус договора с подрядчиком"
+                      value={cont.status}
+                      onChange={e => updateContractor({ ...cont, status: e.target.value as ContractorStatus })}
+                      className="h-7 px-2 rounded border border-zinc-200 bg-white text-xs font-medium focus:outline-none focus:border-zinc-900 cursor-pointer"
+                    >
+                      <option value="negotiation">Переговоры</option>
+                      <option value="contracted">Договор подписан</option>
+                      <option value="paid">Оплачено</option>
+                      <option value="completed">Услуга оказана</option>
+                    </select>
                   </div>
 
-                  <div className="text-right">
-                    <div className="text-sm font-semibold text-zinc-900 font-mono tabular-nums">
-                      {formatCurrency(cont.cost)}
+                  <div className="space-y-1.5 text-xs text-zinc-600 bg-zinc-50 p-2.5 rounded border border-zinc-200 mb-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-400 text-[11px]">Контактное лицо:</span>
+                      <span className="font-medium">{cont.contactPerson}</span>
                     </div>
-                    <div className="text-[10px] text-zinc-400 uppercase font-mono">Сумма</div>
+                    <div className="flex items-center justify-between font-mono text-[11px]">
+                      <span className="text-zinc-400">Телефон:</span>
+                      <span>{cont.phone}</span>
+                    </div>
+                    <div className="flex items-center justify-between font-mono text-[11px]">
+                      <span className="text-zinc-400">E-mail:</span>
+                      <span>{cont.email}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 text-xs bg-zinc-50 p-2.5 rounded border border-zinc-200 my-2">
-                  <div>
-                    <span className="text-[10px] uppercase text-zinc-400 block font-medium">Контакт</span>
-                    <span className="text-zinc-800 font-medium">{cont.contactPerson}</span>
+                <div className="pt-2.5 border-t border-zinc-100 flex items-center justify-between text-xs">
+                  <div className="font-mono">
+                    <span className="text-zinc-400 text-[11px] mr-1">Сумма:</span>
+                    <strong className="text-sm text-zinc-900 font-semibold">{formatCurrency(cont.cost)}</strong>
                   </div>
-                  <div>
-                    <span className="text-[10px] uppercase text-zinc-400 block font-medium">Связь</span>
-                    <span className="text-zinc-600 font-mono text-[11px]">{cont.phone}</span>
-                  </div>
+
+                  <button
+                    onClick={() => deleteContractor(cont.id)}
+                    className="text-zinc-400 hover:text-red-600 p-1"
+                    title="Удалить подрядчика"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
+            ))
+          )}
+        </div>
+      )}
 
-              <div className="pt-2.5 border-t border-zinc-100 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 text-xs">
-                  <span className="text-zinc-500">Статус:</span>
-                  <select
-                    aria-label="Сменить статус контракта"
-                    value={cont.status}
-                    onChange={e => updateContractor({ ...cont, status: e.target.value as ContractorStatus })}
-                    className="h-7 px-2 rounded border border-zinc-200 bg-white text-xs font-medium focus:outline-none"
-                  >
-                    <option value="negotiation">Переговоры</option>
-                    <option value="contracted">Договор подписан</option>
-                    <option value="paid">Оплачено</option>
-                    <option value="completed">Выполнено</option>
-                  </select>
-                </div>
+      {/* SECTION 3: MARKETPLACE / VENDORS CATALOG */}
+      {activeSection === 'marketplace' && (
+        <div className="space-y-4">
+          {/* Marketplace Toolbar & Filters */}
+          <div className="card-surface p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1 flex-wrap">
+              <div className="relative flex-1 min-w-[200px] max-w-sm">
+                <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Поиск по названию, городу, тегам..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="input-base pl-8 w-full"
+                />
+              </div>
 
-                <button
-                  onClick={() => deleteContractor(cont.id)}
-                  className="text-zinc-400 hover:text-red-600 p-1"
-                  title="Удалить подрядчика"
+              <select
+                aria-label="Фильтр по категории"
+                value={filterCategory}
+                onChange={e => setFilterCategory(e.target.value as any)}
+                className="input-base text-xs h-8 cursor-pointer"
+              >
+                <option value="all">Все категории</option>
+                <option value="venue">Площадки для мероприятий</option>
+                <option value="contractor">Подрядчики и сервисы</option>
+              </select>
+
+              <div className="flex items-center gap-1.5 text-xs text-zinc-600">
+                <span>Макс. бюджет:</span>
+                <select
+                  aria-label="Максимальный бюджет"
+                  value={maxPrice}
+                  onChange={e => setMaxPrice(Number(e.target.value))}
+                  className="input-base text-xs h-8 cursor-pointer font-mono"
                 >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                  <option value={200000}>до 200 000 ₽</option>
+                  <option value={400000}>до 400 000 ₽</option>
+                  <option value={600000}>до 600 000 ₽</option>
+                  <option value={1000000}>до 1 000 000 ₽</option>
+                </select>
               </div>
             </div>
-          ))}
+
+            {/* Comparison button */}
+            <div className="flex items-center gap-2 shrink-0">
+              {compareIds.length > 0 && (
+                <button
+                  onClick={() => setIsCompareModalOpen(true)}
+                  className="btn-primary"
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                  Сравнить ({compareIds.length})
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredMarketplace.map(item => {
+              const isCompared = compareIds.includes(item.id);
+              const isAlreadyContracted = activeContractors.some(c => c.companyName === item.title);
+
+              return (
+                <div
+                  key={item.id}
+                  className={`card-surface p-4 flex flex-col justify-between transition-all ${
+                    isCompared ? 'ring-2 ring-zinc-900 border-zinc-900' : ''
+                  }`}
+                >
+                  <div>
+                    {/* Header: Category Badge & Compare Checkbox */}
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-zinc-100 text-zinc-700 border border-zinc-200 font-medium">
+                        {item.category === 'venue' ? 'Площадка' : 'Подрядчик'} • {item.serviceType}
+                      </span>
+
+                      <label className="flex items-center gap-1.5 cursor-pointer text-xs text-zinc-600 select-none">
+                        <input
+                          type="checkbox"
+                          checked={isCompared}
+                          onChange={() => toggleCompare(item.id)}
+                          className="rounded border-zinc-300 text-zinc-900 w-3.5 h-3.5"
+                        />
+                        <span className="text-[11px]">Сравнить</span>
+                      </label>
+                    </div>
+
+                    <h4 className="text-sm font-semibold text-zinc-900">
+                      {item.title}
+                    </h4>
+
+                    <div className="flex items-center gap-2 mt-1 mb-2 text-xs text-zinc-500">
+                      <span className="flex items-center gap-1 text-amber-600 font-medium font-mono text-[11px]">
+                        <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
+                        {item.rating}
+                      </span>
+                      <span className="text-zinc-400">({item.reviewsCount} отзывов)</span>
+                      <span>•</span>
+                      <span>{item.city}</span>
+                    </div>
+
+                    <p className="text-xs text-zinc-600 leading-relaxed mb-3">
+                      {item.description}
+                    </p>
+
+                    {/* Characteristics / Tags */}
+                    <div className="flex flex-wrap gap-1.5 mb-3">
+                      {item.capacity && (
+                        <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-zinc-100 text-zinc-800 border border-zinc-200">
+                          до {item.capacity} гостей
+                        </span>
+                      )}
+                      {item.tags.map(t => (
+                        <span key={t} className="text-[11px] px-2 py-0.5 rounded bg-zinc-50 text-zinc-600 border border-zinc-200">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Price & Action */}
+                  <div className="pt-3 border-t border-zinc-100 flex items-center justify-between gap-2">
+                    <div>
+                      <span className="text-[10px] uppercase text-zinc-400 block font-medium">Стоимость</span>
+                      <strong className="text-sm font-semibold text-zinc-900 font-mono">
+                        {formatCurrency(item.price)}
+                      </strong>
+                    </div>
+
+                    {isAlreadyContracted ? (
+                      <span className="text-xs font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md flex items-center gap-1 font-medium">
+                        <Check className="w-3 h-3" />
+                        В проекте
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => hireMarketplaceItem(item)}
+                        className="btn-primary"
+                        title="Добавить в проект: подрядчик и статья сметы"
+                      >
+                        Привлечь
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Comparison Modal */}
+      {isCompareModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/50 animate-fade-in">
+          <div className="bg-white border border-zinc-200 rounded-lg w-full max-w-4xl shadow-xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="px-5 py-3.5 border-b border-zinc-200 flex items-center justify-between bg-zinc-50/80">
+              <div>
+                <h3 className="text-sm font-semibold text-zinc-900">
+                  Сравнение площадок и подрядчиков
+                </h3>
+                <p className="text-xs text-zinc-500">
+                  Сопоставление параметров, вместимости, рейтингов и сметной стоимости
+                </p>
+              </div>
+              <button
+                onClick={() => setIsCompareModalOpen(false)}
+                className="text-zinc-400 hover:text-zinc-700 p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-5 overflow-x-auto flex-1">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-zinc-200">
+                    <th className="py-2 px-3 text-zinc-400 uppercase text-[10px] font-medium w-36">Параметр</th>
+                    {comparedItems.map(item => (
+                      <th key={item.id} className="py-2 px-3 font-semibold text-zinc-900 text-sm">
+                        {item.title}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-zinc-200/80">
+                  <tr>
+                    <td className="py-2.5 px-3 text-zinc-500 font-medium">Тип и категория</td>
+                    {comparedItems.map(item => (
+                      <td key={item.id} className="py-2.5 px-3">
+                        <span className="px-1.5 py-0.5 rounded bg-zinc-100 font-mono text-[11px] border border-zinc-200">
+                          {item.category === 'venue' ? 'Площадка' : 'Подрядчик'} • {item.serviceType}
+                        </span>
+                      </td>
+                    ))}
+                  </tr>
+
+                  <tr>
+                    <td className="py-2.5 px-3 text-zinc-500 font-medium">Стоимость</td>
+                    {comparedItems.map(item => (
+                      <td key={item.id} className="py-2.5 px-3 font-mono font-semibold text-zinc-900 text-sm">
+                        {formatCurrency(item.price)}
+                      </td>
+                    ))}
+                  </tr>
+
+                  <tr>
+                    <td className="py-2.5 px-3 text-zinc-500 font-medium">Вместимость</td>
+                    {comparedItems.map(item => (
+                      <td key={item.id} className="py-2.5 px-3 font-mono">
+                        {item.capacity ? `${item.capacity} человек` : '—'}
+                      </td>
+                    ))}
+                  </tr>
+
+                  <tr>
+                    <td className="py-2.5 px-3 text-zinc-500 font-medium">Рейтинг и отзывы</td>
+                    {comparedItems.map(item => (
+                      <td key={item.id} className="py-2.5 px-3">
+                        <span className="text-amber-600 font-semibold font-mono">
+                          ★ {item.rating}
+                        </span>{' '}
+                        <span className="text-zinc-400">({item.reviewsCount} отзывов)</span>
+                      </td>
+                    ))}
+                  </tr>
+
+                  <tr>
+                    <td className="py-2.5 px-3 text-zinc-500 font-medium">Город / Формат</td>
+                    {comparedItems.map(item => (
+                      <td key={item.id} className="py-2.5 px-3">
+                        {item.city} ({item.format})
+                      </td>
+                    ))}
+                  </tr>
+
+                  <tr>
+                    <td className="py-2.5 px-3 text-zinc-500 font-medium">Особенности & Теги</td>
+                    {comparedItems.map(item => (
+                      <td key={item.id} className="py-2.5 px-3">
+                        <div className="flex flex-wrap gap-1">
+                          {item.tags.map(t => (
+                            <span key={t} className="text-[10px] px-1.5 py-0.2 rounded bg-zinc-100 text-zinc-700">
+                              {t}
+                            </span>
+                          ))}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+
+                  <tr>
+                    <td className="py-2.5 px-3 text-zinc-500 font-medium">Контакты</td>
+                    {comparedItems.map(item => (
+                      <td key={item.id} className="py-2.5 px-3 font-mono text-[11px] text-zinc-600">
+                        <div>{item.contactPerson}</div>
+                        <div>{item.phone}</div>
+                        <div>{item.email}</div>
+                      </td>
+                    ))}
+                  </tr>
+
+                  <tr>
+                    <td className="py-3 px-3 text-zinc-500 font-medium">Решение</td>
+                    {comparedItems.map(item => {
+                      const isAlreadyContracted = activeContractors.some(c => c.companyName === item.title);
+                      return (
+                        <td key={item.id} className="py-3 px-3">
+                          {isAlreadyContracted ? (
+                            <span className="text-xs font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded inline-flex items-center gap-1 font-medium">
+                              <Check className="w-3 h-3" />
+                              В проекте
+                            </span>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                hireMarketplaceItem(item);
+                                setIsCompareModalOpen(false);
+                              }}
+                              className="btn-primary"
+                            >
+                              Привлечь в проект
+                            </button>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="px-5 py-3 border-t border-zinc-200 flex justify-between items-center bg-zinc-50/50">
+              <button
+                type="button"
+                onClick={() => setCompareIds([])}
+                className="text-xs text-zinc-500 hover:text-zinc-800"
+              >
+                Очистить выбор
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsCompareModalOpen(false)}
+                className="btn-secondary"
+              >
+                Закрыть
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -313,25 +708,20 @@ export const TeamContractorsView: React.FC = () => {
       {isTeamModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40">
           <div className="bg-white border border-zinc-200 rounded-lg w-full max-w-md shadow-md overflow-hidden flex flex-col">
-            <div className="px-5 py-3 border-b border-zinc-200 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-zinc-900">Новый сотрудник</h3>
-              <button
-                onClick={() => setIsTeamModalOpen(false)}
-                className="text-zinc-400 hover:text-zinc-700 p-1"
-              >
+            <div className="px-5 py-3.5 border-b border-zinc-200 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-zinc-900">Добавить участника команды</h3>
+              <button onClick={() => setIsTeamModalOpen(false)} className="text-zinc-400 hover:text-zinc-700 p-1">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleTeamSubmit} className="p-5 space-y-3">
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
-                  ФИО <span className="text-red-500">*</span>
-                </label>
+                <label className="block text-xs font-medium text-zinc-700 mb-1">ФИО сотрудника *</label>
                 <input
                   type="text"
                   required
-                  placeholder="Иван Петров"
+                  placeholder="Иван Иванов"
                   value={newMember.fullName}
                   onChange={e => setNewMember({ ...newMember, fullName: e.target.value })}
                   className="input-base w-full"
@@ -339,13 +729,11 @@ export const TeamContractorsView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
-                  Роль / Должность <span className="text-red-500">*</span>
-                </label>
+                <label className="block text-xs font-medium text-zinc-700 mb-1">Должность / Роль *</label>
                 <input
                   type="text"
                   required
-                  placeholder="Технический координатор"
+                  placeholder="Например: Технический координатор"
                   value={newMember.roleTitle}
                   onChange={e => setNewMember({ ...newMember, roleTitle: e.target.value })}
                   className="input-base w-full"
@@ -353,63 +741,45 @@ export const TeamContractorsView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
-                  Зона ответственности
-                </label>
+                <label className="block text-xs font-medium text-zinc-700 mb-1">Зона ответственности</label>
                 <input
                   type="text"
-                  placeholder="Сценическое оборудование и звук"
+                  placeholder="Например: Сцена, свет и трансляция"
                   value={newMember.zoneOfResponsibility}
                   onChange={e => setNewMember({ ...newMember, zoneOfResponsibility: e.target.value })}
                   className="input-base w-full"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">Email</label>
+                  <label className="block text-xs font-medium text-zinc-700 mb-1">E-mail</label>
                   <input
                     type="email"
-                    required
+                    placeholder="mail@event.ru"
                     value={newMember.email}
                     onChange={e => setNewMember({ ...newMember, email: e.target.value })}
-                    className="input-base w-full"
+                    className="input-base w-full text-xs font-mono"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-700 mb-1">Телефон</label>
                   <input
                     type="tel"
-                    required
+                    placeholder="+7 999 000-00-00"
                     value={newMember.phone}
                     onChange={e => setNewMember({ ...newMember, phone: e.target.value })}
-                    className="input-base w-full"
+                    className="input-base w-full text-xs font-mono"
                   />
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">Роль доступа</label>
-                <select
-                  value={newMember.systemRole}
-                  onChange={e => setNewMember({ ...newMember, systemRole: e.target.value as 'admin' | 'team' })}
-                  className="input-base w-full cursor-pointer"
-                >
-                  <option value="team">Участник команды (Team)</option>
-                  <option value="admin">Администратор (Admin)</option>
-                </select>
-              </div>
-
               <div className="pt-3 border-t border-zinc-200 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsTeamModalOpen(false)}
-                  className="btn-secondary"
-                >
+                <button type="button" onClick={() => setIsTeamModalOpen(false)} className="btn-secondary">
                   Отмена
                 </button>
                 <button type="submit" className="btn-primary">
-                  Добавить
+                  Сохранить
                 </button>
               </div>
             </form>
@@ -421,72 +791,48 @@ export const TeamContractorsView: React.FC = () => {
       {isContractorModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40">
           <div className="bg-white border border-zinc-200 rounded-lg w-full max-w-md shadow-md overflow-hidden flex flex-col">
-            <div className="px-5 py-3 border-b border-zinc-200 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-zinc-900">Новый подрядчик</h3>
-              <button
-                onClick={() => setIsContractorModalOpen(false)}
-                className="text-zinc-400 hover:text-zinc-700 p-1"
-              >
+            <div className="px-5 py-3.5 border-b border-zinc-200 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-zinc-900">Добавить подрядчика</h3>
+              <button onClick={() => setIsContractorModalOpen(false)} className="text-zinc-400 hover:text-zinc-700 p-1">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleContractorSubmit} className="p-5 space-y-3">
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
-                  Компания <span className="text-red-500">*</span>
-                </label>
+                <label className="block text-xs font-medium text-zinc-700 mb-1">Компания / Подрядчик *</label>
                 <input
                   type="text"
                   required
-                  placeholder="ООО «Монтаж Про»"
+                  placeholder="ООО Звук и Свет"
                   value={newContractor.companyName}
                   onChange={e => setNewContractor({ ...newContractor, companyName: e.target.value })}
                   className="input-base w-full"
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
-                  Услуга <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Звуковое сопровождение"
-                  value={newContractor.serviceType}
-                  onChange={e => setNewContractor({ ...newContractor, serviceType: e.target.value })}
-                  className="input-base w-full"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">
-                    Сумма договора (₽)
-                  </label>
+                  <label className="block text-xs font-medium text-zinc-700 mb-1">Тип услуги *</label>
                   <input
-                    type="number"
-                    min="0"
-                    step="5000"
+                    type="text"
                     required
-                    value={newContractor.cost}
-                    onChange={e => setNewContractor({ ...newContractor, cost: Math.max(0, Number(e.target.value)) })}
-                    className="input-base w-full font-mono"
+                    placeholder="Звуковое оборудование"
+                    value={newContractor.serviceType}
+                    onChange={e => setNewContractor({ ...newContractor, serviceType: e.target.value })}
+                    className="input-base w-full text-xs"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">Статус</label>
-                  <select
-                    value={newContractor.status}
-                    onChange={e => setNewContractor({ ...newContractor, status: e.target.value as ContractorStatus })}
-                    className="input-base w-full cursor-pointer"
-                  >
-                    <option value="negotiation">Переговоры</option>
-                    <option value="contracted">Договор подписан</option>
-                    <option value="paid">Оплачено</option>
-                    <option value="completed">Выполнено</option>
-                  </select>
+                  <label className="block text-xs font-medium text-zinc-700 mb-1">Стоимость (₽)</label>
+                  <input
+                    type="number"
+                    step="10000"
+                    value={newContractor.cost}
+                    onChange={e => setNewContractor({ ...newContractor, cost: Number(e.target.value) })}
+                    className="input-base w-full text-xs font-mono"
+                  />
                 </div>
               </div>
 
@@ -494,44 +840,43 @@ export const TeamContractorsView: React.FC = () => {
                 <label className="block text-xs font-medium text-zinc-700 mb-1">Контактное лицо</label>
                 <input
                   type="text"
-                  placeholder="Менеджер"
+                  placeholder="Имя представителя"
                   value={newContractor.contactPerson}
                   onChange={e => setNewContractor({ ...newContractor, contactPerson: e.target.value })}
                   className="input-base w-full"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2.5">
                 <div>
                   <label className="block text-xs font-medium text-zinc-700 mb-1">Телефон</label>
                   <input
                     type="tel"
+                    placeholder="+7 999 000-00-00"
                     value={newContractor.phone}
                     onChange={e => setNewContractor({ ...newContractor, phone: e.target.value })}
-                    className="input-base w-full"
+                    className="input-base w-full text-xs font-mono"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">Email</label>
+                  <label className="block text-xs font-medium text-zinc-700 mb-1">E-mail</label>
                   <input
                     type="email"
+                    placeholder="info@company.ru"
                     value={newContractor.email}
                     onChange={e => setNewContractor({ ...newContractor, email: e.target.value })}
-                    className="input-base w-full"
+                    className="input-base w-full text-xs font-mono"
                   />
                 </div>
               </div>
 
               <div className="pt-3 border-t border-zinc-200 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsContractorModalOpen(false)}
-                  className="btn-secondary"
-                >
+                <button type="button" onClick={() => setIsContractorModalOpen(false)} className="btn-secondary">
                   Отмена
                 </button>
                 <button type="submit" className="btn-primary">
-                  Добавить
+                  Сохранить
                 </button>
               </div>
             </form>

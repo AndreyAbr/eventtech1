@@ -3,7 +3,46 @@ export type UserRole = 'admin' | 'team' | 'guest';
 export type EventType = 'Конференция' | 'Хакатон' | 'Корпоратив' | 'Форум' | 'Воркшоп' | 'Выставка';
 
 export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
-export type TaskStatus = 'todo' | 'in_progress' | 'review' | 'done';
+export type TaskStatus = string;
+
+export type KanbanStageColor = 'zinc' | 'blue' | 'amber' | 'emerald' | 'purple' | 'rose';
+
+export interface KanbanStage {
+  id: string;
+  eventId: string;
+  title: string;
+  color: KanbanStageColor;
+  order: number;
+  isCompletedStage?: boolean;
+}
+
+export interface MarketplaceItem {
+  id: string;
+  category: 'venue' | 'contractor';
+  serviceType: string;
+  title: string;
+  description: string;
+  rating: number;
+  reviewsCount: number;
+  capacity?: number;
+  price: number;
+  city: string;
+  format: string;
+  tags: string[];
+  contactPerson: string;
+  phone: string;
+  email: string;
+}
+
+export interface BroadcastMessage {
+  id: string;
+  eventId: string;
+  title: string;
+  message: string;
+  audience: 'all' | 'confirmed' | 'vip' | 'checked_in';
+  sentAt: string;
+  recipientCount: number;
+}
 
 export type ExpenseCategory =
   | 'Аренда площадки'

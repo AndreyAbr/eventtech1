@@ -24,7 +24,9 @@ export const Sidebar: React.FC = () => {
     setActiveTab,
     metrics,
     addEvent,
-    currentUserRole
+    currentUserRole,
+    isMobileMenuOpen,
+    setIsMobileMenuOpen
   } = useEventContext();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -82,6 +84,7 @@ export const Sidebar: React.FC = () => {
       leadOrganizer: 'Алексей Морозов'
     });
     setActiveTab('dashboard');
+    setIsMobileMenuOpen(false);
   };
 
   const menuItems: { id: ActiveTab; label: string; icon: React.ElementType; badge?: React.ReactNode; hideInGuest?: boolean }[] = [
@@ -129,20 +132,49 @@ export const Sidebar: React.FC = () => {
 
   return (
     <>
-      <aside className="w-60 min-w-[240px] bg-[#F4F4F5]/70 border-r border-zinc-200 flex flex-col h-screen select-none sticky top-0 z-20">
-        {/* Brand Header */}
-        <div className="h-12 px-4 border-b border-zinc-200 flex items-center justify-between bg-white/50">
-          <div className="flex items-center gap-2">
-            <span className="w-5 h-5 rounded bg-zinc-900 text-white flex items-center justify-center text-xs font-bold font-mono">
-              E
-            </span>
+      {/* Mobile Backdrop */}
+      {isMobileMenuOpen && (
+        <div
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="fixed inset-0 bg-zinc-900/40 z-40 md:hidden animate-fade-in"
+        />
+      )}
+
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-[#F4F4F5] border-r border-zinc-200 flex flex-col h-screen select-none transition-transform duration-200 ease-in-out
+        md:static md:w-60 md:min-w-[240px] md:translate-x-0
+        ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'}
+      `}>
+        {/* Brand Header (Clickable -> Dashboard) */}
+        <div
+          onClick={() => {
+            setActiveTab('dashboard');
+            setIsMobileMenuOpen(false);
+          }}
+          className="h-12 px-4 border-b border-zinc-200 flex items-center justify-between bg-white/50 cursor-pointer hover:bg-white/80 transition-colors"
+          title="На главную (Дашборд)"
+        >
+          <div className="flex items-center gap-1.5">
+            <img src="/logo.png" alt="EventTech" className="h-5 w-auto object-contain" />
             <span className="text-xs font-semibold text-zinc-900 tracking-tight">
-              EventTech Hub
+              Hub
             </span>
           </div>
-          <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600 border border-zinc-200">
-            v1.0
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600 border border-zinc-200">
+              v1.0
+            </span>
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                setIsMobileMenuOpen(false);
+              }}
+              className="md:hidden text-zinc-400 hover:text-zinc-700 p-1 rounded"
+              aria-label="Закрыть меню"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Project Switcher */}
@@ -194,7 +226,10 @@ export const Sidebar: React.FC = () => {
             return (
               <button
                 key={item.id}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  setIsMobileMenuOpen(false);
+                }}
                 className={`w-full h-8 px-2.5 rounded-md text-[13px] font-medium flex items-center justify-between transition-colors ${
                   isActive
                     ? 'bg-zinc-200/80 text-zinc-900'
@@ -263,27 +298,28 @@ export const Sidebar: React.FC = () => {
                   >
                     <option value="Хакатон">Хакатон</option>
                     <option value="Конференция">Конференция</option>
-                    <option value="Корпоратив">Корпоратив</option>
                     <option value="Форум">Форум</option>
                     <option value="Воркшоп">Воркшоп</option>
                     <option value="Выставка">Выставка</option>
+                    <option value="Корпоратив">Корпоратив</option>
                   </select>
                 </div>
+
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">Главный организатор</label>
+                  <label className="block text-xs font-medium text-zinc-700 mb-1">Планируемое число гостей</label>
                   <input
-                    type="text"
-                    required
-                    value={formData.leadOrganizer}
-                    onChange={e => setFormData({ ...formData, leadOrganizer: e.target.value })}
-                    className="input-base w-full"
+                    type="number"
+                    min="1"
+                    value={formData.plannedHeadcount}
+                    onChange={e => setFormData({ ...formData, plannedHeadcount: Number(e.target.value) })}
+                    className="input-base w-full font-mono text-xs"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">Дата старта</label>
+                  <label className="block text-xs font-medium text-zinc-700 mb-1">Дата начала</label>
                   <input
                     type="date"
                     required
@@ -292,16 +328,19 @@ export const Sidebar: React.FC = () => {
                     className="input-base w-full font-mono text-xs"
                   />
                 </div>
+
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">Время</label>
+                  <label className="block text-xs font-medium text-zinc-700 mb-1">Время начала</label>
                   <input
                     type="time"
-                    required
                     value={formData.startTime}
                     onChange={e => setFormData({ ...formData, startTime: e.target.value })}
                     className="input-base w-full font-mono text-xs"
                   />
                 </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-zinc-700 mb-1">Дата окончания</label>
                   <input
@@ -312,68 +351,42 @@ export const Sidebar: React.FC = () => {
                     className="input-base w-full font-mono text-xs"
                   />
                 </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-medium text-zinc-700 mb-1">Лимит бюджета (₽)</label>
                   <input
                     type="number"
-                    min="0"
                     step="50000"
                     value={formData.totalBudgetLimit}
-                    onChange={e => setFormData({ ...formData, totalBudgetLimit: Math.max(0, Number(e.target.value)) })}
-                    className="input-base w-full font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">План гостей (чел.)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={formData.plannedHeadcount}
-                    onChange={e => setFormData({ ...formData, plannedHeadcount: Math.max(1, Number(e.target.value)) })}
-                    className="input-base w-full font-mono"
+                    onChange={e => setFormData({ ...formData, totalBudgetLimit: Number(e.target.value) })}
+                    className="input-base w-full font-mono text-xs"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">Локация проведения</label>
+                <label className="block text-xs font-medium text-zinc-700 mb-1">Локация / Адрес</label>
                 <input
                   type="text"
-                  required
-                  placeholder="Например: Конгресс-центр Технопарка, Москва"
+                  placeholder="г. Москва, ул. Примерная, 10 или Ссылка на трансляцию"
                   value={formData.location}
                   onChange={e => setFormData({ ...formData, location: e.target.value })}
                   className="input-base w-full"
                 />
               </div>
 
-              <div className="flex items-center gap-2 pt-0.5">
-                <input
-                  type="checkbox"
-                  id="isOnlineCheck"
-                  checked={formData.isOnline}
-                  onChange={e => setFormData({ ...formData, isOnline: e.target.checked })}
-                  className="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900 w-3.5 h-3.5"
-                />
-                <label htmlFor="isOnlineCheck" className="text-xs text-zinc-700 cursor-pointer">
-                  Онлайн-формат (трансляция / виртуальная платформа)
-                </label>
-              </div>
-
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">Описание и формат</label>
-                <textarea
-                  rows={2}
-                  value={formData.description}
-                  onChange={e => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-2.5 py-1.5 rounded-md bg-white border border-zinc-200 text-sm text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 resize-none"
+                <label className="block text-xs font-medium text-zinc-700 mb-1">Ответственный организатор</label>
+                <input
+                  type="text"
+                  placeholder="ФИО лид-организатора"
+                  value={formData.leadOrganizer}
+                  onChange={e => setFormData({ ...formData, leadOrganizer: e.target.value })}
+                  className="input-base w-full"
                 />
               </div>
 
-              <div className="pt-3 border-t border-zinc-200 flex items-center justify-end gap-2">
+              <div className="pt-3 border-t border-zinc-200 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
@@ -385,7 +398,7 @@ export const Sidebar: React.FC = () => {
                   type="submit"
                   className="btn-primary"
                 >
-                  Создать проект
+                  Создать
                 </button>
               </div>
             </form>
