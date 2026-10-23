@@ -173,7 +173,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     title: 'Подписание договора аренды и согласование регламента безопасности с Технопарком',
     description: 'Внести финальные правки в договор с управляющей компанией, передать список монтажников и паспорт безопасности мероприятия.',
     assigneeId: 'tm-1',
-    deadline: getRelativeDateString(-3), // OVERDUE!
+    deadline: getRelativeDateString(-4), // OVERDUE!
     priority: 'critical',
     status: 'stage-evt-1-in_progress',
     comments: [
@@ -197,7 +197,7 @@ export const INITIAL_TASKS: TaskItem[] = [
     title: 'Финальное тестирование выделенного интернет-канала 1 Гбит/с и Wi-Fi роутеров',
     description: 'Обеспечить разделение SSID для участников хакатона, жюри и служебных нужд трансляции. Нагрузочный тест на 400 подключений.',
     assigneeId: 'tm-2',
-    deadline: getRelativeDateString(-1), // OVERDUE!
+    deadline: getRelativeDateString(-2), // OVERDUE!
     priority: 'high',
     status: 'stage-evt-1-todo',
     comments: [
@@ -212,10 +212,21 @@ export const INITIAL_TASKS: TaskItem[] = [
   {
     id: 'task-3',
     eventId: 'evt-1',
+    title: 'Инструктаж службы скорой медицинской помощи и дежурной охраны',
+    description: 'Обеспечить присутствие дежурной бригады медиков и круглосуточного поста охраны входной группы.',
+    assigneeId: 'tm-1',
+    deadline: getRelativeDateString(-1), // OVERDUE!
+    priority: 'critical',
+    status: 'stage-evt-1-review',
+    comments: []
+  },
+  {
+    id: 'task-4',
+    eventId: 'evt-1',
     title: 'Заказ фирменного мерча, ланьярдов и печать бейджей с QR-метками',
     description: '300 худи размеров S-XXL, 350 ланьярдов и заготовки под бейджи с матовой ламинацией.',
     assigneeId: 'tm-4',
-    deadline: getRelativeDateString(2),
+    deadline: getRelativeDateString(4),
     priority: 'high',
     status: 'stage-evt-1-in_progress',
     comments: [
@@ -228,34 +239,34 @@ export const INITIAL_TASKS: TaskItem[] = [
     ]
   },
   {
-    id: 'task-4',
+    id: 'task-5',
     eventId: 'evt-1',
     title: 'Утверждение меню кофе-брейков и веганских опций питания',
     description: 'Согласовать с кейтерингом график подачи горячего кофе, сэндвичей и энергетических снеков на ночные часы хакатона.',
     assigneeId: 'tm-3',
-    deadline: getRelativeDateString(5),
+    deadline: getRelativeDateString(7),
     priority: 'medium',
     status: 'stage-evt-1-in_progress',
     comments: []
   },
   {
-    id: 'task-5',
+    id: 'task-6',
     eventId: 'evt-1',
     title: 'Брифинг волонтеров зоны регистрации и обучение работе со сканером билетов',
     description: 'Собрать 15 волонтеров в Zoom, распределить смены и протестировать мобильный интерфейс QR-чекина.',
     assigneeId: 'tm-3',
-    deadline: getRelativeDateString(9),
+    deadline: getRelativeDateString(11),
     priority: 'medium',
     status: 'stage-evt-1-todo',
     comments: []
   },
   {
-    id: 'task-6',
+    id: 'task-7',
     eventId: 'evt-1',
     title: 'Запуск рекламной кампании в Telegram-каналах и рассылка по базе выпускников',
     description: 'Размещение анонсов в каналах по ИТ, фронтенду и AI. Таргетированный охват не менее 50 000 просмотров.',
     assigneeId: 'tm-4',
-    deadline: getRelativeDateString(-10),
+    deadline: getRelativeDateString(-12),
     priority: 'medium',
     status: 'stage-evt-1-done',
     comments: [
@@ -268,25 +279,14 @@ export const INITIAL_TASKS: TaskItem[] = [
     ]
   },
   {
-    id: 'task-7',
+    id: 'task-8',
     eventId: 'evt-1',
     title: 'Подготовка экспертного состава жюри и критериев оценки хакатона',
     description: 'Подтвердить участие 7 экспертов из Сбера, Яндекса и Т-Банка, согласовать регламент питчей 3 минуты + 2 минуты вопросы.',
     assigneeId: 'tm-1',
-    deadline: getRelativeDateString(-5),
+    deadline: getRelativeDateString(-8),
     priority: 'high',
     status: 'stage-evt-1-done',
-    comments: []
-  },
-  {
-    id: 'task-8',
-    eventId: 'evt-1',
-    title: 'Инструктаж службы скорой медицинской помощи и дежурной охраны',
-    description: 'Обеспечить присутствие дежурной бригады медиков и круглосуточного поста охраны входной группы.',
-    assigneeId: 'tm-1',
-    deadline: getRelativeDateString(11),
-    priority: 'low',
-    status: 'stage-evt-1-review',
     comments: []
   }
 ];

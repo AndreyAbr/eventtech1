@@ -30,7 +30,7 @@ import {
 } from '../data/seedData';
 import { calculateEventMetrics, EventMetrics } from '../utils/analytics';
 
-const STORAGE_KEY = 'eventtech_store_v3';
+const STORAGE_KEY = 'eventtech_store_v4';
 
 interface StoredData {
   events: EventEntity[];
@@ -61,6 +61,8 @@ interface EventContextType {
   activeEventId: string;
   activeTab: ActiveTab;
   currentUserRole: UserRole;
+  theme: 'light' | 'dark';
+  toggleTheme: () => void;
   notifications: NotificationToast[];
 
   // Modals & Navigation state
@@ -206,6 +208,35 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
   const [currentUserRole, setCurrentUserRole] = useState<UserRole>('admin');
   const [notifications, setNotifications] = useState<NotificationToast[]>([]);
+
+  // Dark Mode Theme State
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    try {
+      const saved = localStorage.getItem('eventtech_theme');
+      if (saved === 'dark' || saved === 'light') return saved;
+      if (typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+      }
+    } catch {}
+    return 'light';
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('eventtech_theme', theme);
+    } catch {}
+    if (typeof document !== 'undefined') {
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   // Navigation and cross-tab helpers
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -750,6 +781,8 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setActiveEventId,
         setActiveTab,
         setCurrentUserRole,
+        theme,
+        toggleTheme,
         notify,
         dismissNotification,
         addEvent,

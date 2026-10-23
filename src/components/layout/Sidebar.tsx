@@ -96,7 +96,7 @@ export const Sidebar: React.FC = () => {
       icon: CheckSquare,
       hideInGuest: true,
       badge: metrics.overdueTasksCount > 0 ? (
-        <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-medium">
+        <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/40 font-medium">
           {metrics.overdueTasksCount}
         </span>
       ) : null
@@ -107,7 +107,7 @@ export const Sidebar: React.FC = () => {
       icon: Wallet,
       hideInGuest: true,
       badge: metrics.isOverTotalLimit ? (
-        <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-red-100 text-red-700 font-medium">
+        <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/40 font-medium">
           перерасход
         </span>
       ) : null
@@ -121,7 +121,7 @@ export const Sidebar: React.FC = () => {
       icon: Sparkles,
       hideInGuest: true,
       badge: (
-        <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-zinc-200/80 text-zinc-700 font-medium">
+        <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-zinc-200/80 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium">
           AUTO
         </span>
       )
@@ -136,12 +136,12 @@ export const Sidebar: React.FC = () => {
       {isMobileMenuOpen && (
         <div
           onClick={() => setIsMobileMenuOpen(false)}
-          className="fixed inset-0 bg-zinc-900/40 z-40 md:hidden animate-fade-in"
+          className="fixed inset-0 bg-zinc-900/40 dark:bg-black/60 z-40 md:hidden animate-fade-in"
         />
       )}
 
       <aside className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-[#F4F4F5] border-r border-zinc-200 flex flex-col h-screen select-none transition-transform duration-200 ease-in-out
+        fixed inset-y-0 left-0 z-50 w-64 bg-[#F4F4F5] dark:bg-[#0C0C0E] border-r border-zinc-200 dark:border-zinc-800/80 flex flex-col h-screen select-none transition-transform duration-200 ease-in-out
         md:static md:w-60 md:min-w-[240px] md:translate-x-0
         ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'}
       `}>
@@ -151,17 +151,19 @@ export const Sidebar: React.FC = () => {
             setActiveTab('dashboard');
             setIsMobileMenuOpen(false);
           }}
-          className="h-12 px-4 border-b border-zinc-200 flex items-center justify-between bg-white/50 cursor-pointer hover:bg-white/80 transition-colors"
+          className="h-12 px-4 border-b border-zinc-200 dark:border-zinc-800/80 flex items-center justify-between bg-white/50 dark:bg-[#101014]/60 cursor-pointer hover:bg-white/80 dark:hover:bg-[#141418] transition-colors"
           title="На главную (Дашборд)"
         >
-          <div className="flex items-center gap-1.5">
-            <img src="/logo.png" alt="EventTech" className="h-5 w-auto object-contain" />
-            <span className="text-xs font-semibold text-zinc-900 tracking-tight">
+          <div className="flex items-center gap-2">
+            <div className="bg-white dark:bg-zinc-100 px-1.5 py-0.5 rounded border border-zinc-200/60 dark:border-zinc-700 flex items-center shadow-xs">
+              <img src="/logo.png" alt="EventTech" className="h-4.5 w-auto object-contain" />
+            </div>
+            <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight">
               Hub
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600 border border-zinc-200">
+            <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
               v1.0
             </span>
             <button
@@ -169,7 +171,7 @@ export const Sidebar: React.FC = () => {
                 e.stopPropagation();
                 setIsMobileMenuOpen(false);
               }}
-              className="md:hidden text-zinc-400 hover:text-zinc-700 p-1 rounded"
+              className="md:hidden text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-1 rounded"
               aria-label="Закрыть меню"
             >
               <X className="w-4 h-4" />
@@ -179,27 +181,27 @@ export const Sidebar: React.FC = () => {
 
         {/* Project Switcher */}
         {currentUserRole !== 'guest' ? (
-          <div className="p-3 border-b border-zinc-200">
+          <div className="p-3 border-b border-zinc-200 dark:border-zinc-800/80">
             <div className="flex items-center gap-1.5">
               <div className="relative flex-1">
                 <select
                   aria-label="Выбрать активное мероприятие"
                   value={activeEventId}
                   onChange={(e) => setActiveEventId(e.target.value)}
-                  className="w-full h-8 pl-2.5 pr-7 appearance-none bg-white border border-zinc-200 hover:border-zinc-300 rounded-md text-xs font-medium text-zinc-900 truncate focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 cursor-pointer shadow-sm transition-colors"
+                  className="w-full h-8 pl-2.5 pr-7 appearance-none bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 rounded-md text-xs font-medium text-zinc-900 dark:text-zinc-100 truncate focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400 focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-400 cursor-pointer shadow-sm transition-colors"
                 >
                   {events.map(ev => (
-                    <option key={ev.id} value={ev.id}>
+                    <option key={ev.id} value={ev.id} className="dark:bg-zinc-900 dark:text-zinc-100">
                       {ev.title}
                     </option>
                   ))}
                 </select>
-                <ChevronDown className="w-3.5 h-3.5 text-zinc-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <ChevronDown className="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               </div>
 
               <button
                 onClick={() => setIsModalOpen(true)}
-                className="h-8 w-8 inline-flex items-center justify-center rounded-md bg-white hover:bg-zinc-50 border border-zinc-200 text-zinc-700 hover:text-zinc-900 transition-colors shadow-sm shrink-0"
+                className="h-8 w-8 inline-flex items-center justify-center rounded-md bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors shadow-sm shrink-0"
                 title="Новое мероприятие"
               >
                 <Plus className="w-3.5 h-3.5" />
@@ -207,8 +209,8 @@ export const Sidebar: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="p-3 border-b border-zinc-200">
-            <div className="px-2.5 py-1.5 bg-white border border-zinc-200 rounded-md text-xs font-medium text-zinc-700 flex items-center gap-2">
+          <div className="p-3 border-b border-zinc-200 dark:border-zinc-800/80">
+            <div className="px-2.5 py-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md text-xs font-medium text-zinc-700 dark:text-zinc-300 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
               Гостевой портал
             </div>
@@ -217,7 +219,7 @@ export const Sidebar: React.FC = () => {
 
         {/* Navigation Menu */}
         <nav className="flex-1 p-2.5 space-y-0.5 overflow-y-auto">
-          <div className="px-2 py-1 text-[11px] font-medium text-zinc-400 uppercase tracking-wider">
+          <div className="px-2 py-1 text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
             {currentUserRole === 'guest' ? 'Гостевой вид' : 'Разделы'}
           </div>
           {visibleMenuItems.map(item => {
@@ -232,12 +234,12 @@ export const Sidebar: React.FC = () => {
                 }}
                 className={`w-full h-8 px-2.5 rounded-md text-[13px] font-medium flex items-center justify-between transition-colors ${
                   isActive
-                    ? 'bg-zinc-200/80 text-zinc-900'
-                    : 'text-zinc-600 hover:bg-zinc-200/40 hover:text-zinc-900'
+                    ? 'bg-zinc-200/80 dark:bg-zinc-800/90 text-zinc-900 dark:text-zinc-100'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/40 dark:hover:bg-zinc-800/40 hover:text-zinc-900 dark:hover:text-zinc-100'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-zinc-900' : 'text-zinc-500'}`} />
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500 dark:text-zinc-400'}`} />
                   <span className="whitespace-nowrap">{item.label}</span>
                 </div>
                 {item.badge && <span className="ml-2 shrink-0">{item.badge}</span>}
@@ -247,27 +249,27 @@ export const Sidebar: React.FC = () => {
         </nav>
 
         {/* Footer */}
-        <div className="p-3 border-t border-zinc-200 text-xs text-zinc-500 flex items-center justify-between bg-white/40">
+        <div className="p-3 border-t border-zinc-200 dark:border-zinc-800/80 text-xs text-zinc-500 dark:text-zinc-400 flex items-center justify-between bg-white/40 dark:bg-[#101014]/40">
           <span className="flex items-center gap-1.5 font-mono text-[11px]">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
             Локальная БД
           </span>
-          <span className="font-mono text-[11px] text-zinc-400">MVP</span>
+          <span className="font-mono text-[11px] text-zinc-400 dark:text-zinc-500">MVP</span>
         </div>
       </aside>
 
       {/* Modal: New Event */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40">
-          <div className="bg-white border border-zinc-200 rounded-lg w-full max-w-lg shadow-md overflow-hidden flex flex-col">
-            <div className="px-5 py-3.5 border-b border-zinc-200 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40 dark:bg-black/60">
+          <div className="bg-white dark:bg-[#141418] border border-zinc-200 dark:border-zinc-800 rounded-lg w-full max-w-lg shadow-md overflow-hidden flex flex-col">
+            <div className="px-5 py-3.5 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-zinc-900">Создание нового мероприятия</h3>
-                <p className="text-xs text-zinc-500">Заполните базовый паспорт события</p>
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Создание нового мероприятия</h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">Заполните базовый паспорт события</p>
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="text-zinc-400 hover:text-zinc-700 p-1 rounded-md transition-colors"
+                className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-1 rounded-md transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -275,7 +277,7 @@ export const Sidebar: React.FC = () => {
 
             <form onSubmit={handleCreateSubmit} className="p-5 space-y-3.5 overflow-y-auto max-h-[80vh]">
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                   Название мероприятия <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -290,7 +292,7 @@ export const Sidebar: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">Тип события</label>
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Тип события</label>
                   <select
                     value={formData.type}
                     onChange={e => setFormData({ ...formData, type: e.target.value as EventType })}
@@ -306,7 +308,7 @@ export const Sidebar: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">Планируемое число гостей</label>
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Планируемое число гостей</label>
                   <input
                     type="number"
                     min="1"
@@ -319,7 +321,7 @@ export const Sidebar: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">Дата начала</label>
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Дата начала</label>
                   <input
                     type="date"
                     required
@@ -330,7 +332,7 @@ export const Sidebar: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">Время начала</label>
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Время начала</label>
                   <input
                     type="time"
                     value={formData.startTime}
@@ -342,7 +344,7 @@ export const Sidebar: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">Дата окончания</label>
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Дата окончания</label>
                   <input
                     type="date"
                     required
@@ -353,7 +355,7 @@ export const Sidebar: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">Лимит бюджета (₽)</label>
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Лимит бюджета (₽)</label>
                   <input
                     type="number"
                     step="50000"
@@ -365,7 +367,7 @@ export const Sidebar: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">Локация / Адрес</label>
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Локация / Адрес</label>
                 <input
                   type="text"
                   placeholder="г. Москва, ул. Примерная, 10 или Ссылка на трансляцию"
@@ -376,7 +378,7 @@ export const Sidebar: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">Ответственный организатор</label>
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Ответственный организатор</label>
                 <input
                   type="text"
                   placeholder="ФИО лид-организатора"
@@ -386,7 +388,7 @@ export const Sidebar: React.FC = () => {
                 />
               </div>
 
-              <div className="pt-3 border-t border-zinc-200 flex justify-end gap-2">
+              <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}

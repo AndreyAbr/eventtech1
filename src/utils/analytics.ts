@@ -19,14 +19,40 @@ export interface EventMetrics {
   surveysCount: number;
 }
 
-export function isTaskOverdue(deadline: string, status: string, isCompleted?: boolean): boolean {
-  if (status === 'done' || status.endsWith('-done') || isCompleted) return false;
+export function pluralizeRu(count: number, words: [string, string, string]): string {
+  const abs = Math.abs(count) % 100;
+  const n1 = abs % 10;
+  if (abs > 10 && abs < 20) return words[2];
+  if (n1 > 1 && n1 < 5) return words[1];
+  if (n1 === 1) return words[0];
+  return words[2];
+}
+
+export function isTaskOverdue(
+  taskOrDeadline: TaskItem | string,
+  statusOrCompletedStages?: string | string[],
+  completedStageIds?: string[]
+): boolean {
+  let deadline = '';
+  let status = '';
+  let completedStages: string[] | undefined;
+
+  if (typeof taskOrDeadline === 'object' && taskOrDeadline !== null) {
+    deadline = taskOrDeadline.deadline;
+    status = taskOrDeadline.status;
+    completedStages = Array.isArray(statusOrCompletedStages) ? statusOrCompletedStages : completedStageIds;
+  } else {
+    deadline = taskOrDeadline;
+    status = typeof statusOrCompletedStages === 'string' ? statusOrCompletedStages : '';
+    completedStages = completedStageIds;
+  }
+
+  if (status === 'done' || status.endsWith('-done')) return false;
+  if (completedStages && completedStages.includes(status)) return false;
   if (!deadline) return false;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const taskDate = new Date(deadline);
-  taskDate.setHours(0, 0, 0, 0);
-  return taskDate.getTime() < today.getTime();
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  return deadline < todayStr;
 }
 
 export function calculateEventMetrics(
@@ -59,9 +85,10 @@ export function calculateEventMetrics(
   }
 
   // Tasks metrics
-  const completedStageIds = new Set(stages.filter(s => s.isCompletedStage).map(s => s.id));
+  const completedStageIds = stages.filter(s => s.isCompletedStage).map(s => s.id);
+  const completedStageSet = new Set(completedStageIds);
   const isTaskCompleted = (t: TaskItem) =>
-    t.status === 'done' || t.status.endsWith('-done') || completedStageIds.has(t.status);
+    t.status === 'done' || t.status.endsWith('-done') || completedStageSet.has(t.status);
 
   const totalTasksCount = tasks.length;
   const completedTasksCount = tasks.filter(isTaskCompleted).length;
@@ -69,7 +96,7 @@ export function calculateEventMetrics(
     ? Math.round((completedTasksCount / totalTasksCount) * 100)
     : 0;
 
-  const overdueTasks = tasks.filter(t => !isTaskCompleted(t) && isTaskOverdue(t.deadline, t.status));
+  const overdueTasks = tasks.filter(t => !isTaskCompleted(t) && isTaskOverdue(t, completedStageIds));
   const overdueTasksCount = overdueTasks.length;
   const criticalOverdueTasksCount = overdueTasks.filter(t => t.priority === 'critical').length;
 

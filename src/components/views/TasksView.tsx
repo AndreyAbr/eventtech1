@@ -428,15 +428,15 @@ export const TasksView: React.FC = () => {
                 onDrop={e => handleDrop(e, stage)}
                 className={`w-72 shrink-0 rounded-lg flex flex-col min-h-[540px] transition-all duration-200 border relative ${
                   isDragOver
-                    ? 'bg-zinc-100 ring-2 ring-zinc-900/20 border-zinc-400'
-                    : 'bg-zinc-100/70 border-zinc-200/90'
+                    ? 'bg-zinc-100 dark:bg-zinc-800/80 ring-2 ring-zinc-900/20 dark:ring-zinc-400/30 border-zinc-400 dark:border-zinc-600'
+                    : 'bg-zinc-100/70 dark:bg-[#16161A] border-zinc-200/90 dark:border-zinc-800/80'
                 }`}
               >
                 {/* 3px Top Colored Line */}
                 <div className={`h-[3px] rounded-t-lg w-full ${colorStyle.bar}`} />
 
                 {/* Column Header */}
-                <div className="p-3 border-b border-zinc-200/80">
+                <div className="p-3 border-b border-zinc-200/80 dark:border-zinc-800/80">
                   {isEditing ? (
                     <div className="space-y-2">
                       <input
@@ -584,12 +584,12 @@ export const TasksView: React.FC = () => {
                         onDragStart={e => handleDragStart(e, task.id)}
                         onDragEnd={handleDragEnd}
                         onClick={() => setSelectedTask(task)}
-                        className={`bg-white border rounded-md p-3 transition-all duration-150 shadow-sm group select-none ${
+                        className={`bg-white dark:bg-[#1E1E24] border rounded-md p-3 transition-all duration-150 shadow-sm group select-none ${
                           currentUserRole !== 'guest' ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'
                         } ${
                           isBeingDragged
-                            ? 'opacity-40 border-2 border-dashed border-zinc-300 bg-zinc-100/50 scale-[0.98]'
-                            : 'border-zinc-200 hover:border-zinc-300'
+                            ? 'opacity-40 border-2 border-dashed border-zinc-300 dark:border-zinc-600 bg-zinc-100/50 dark:bg-zinc-800/40 scale-[0.98]'
+                            : 'border-zinc-200 dark:border-zinc-700/80 hover:border-zinc-300 dark:hover:border-zinc-600'
                         } ${
                           isJustDropped ? 'animate-drop-settle' : ''
                         }`}
@@ -598,49 +598,49 @@ export const TasksView: React.FC = () => {
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center gap-1.5">
                             {currentUserRole !== 'guest' && (
-                              <GripVertical className="w-3 h-3 text-zinc-300 group-hover:text-zinc-500 -ml-1 shrink-0" />
+                              <GripVertical className="w-3 h-3 text-zinc-300 dark:text-zinc-600 group-hover:text-zinc-500 dark:group-hover:text-zinc-400 -ml-1 shrink-0" />
                             )}
-                            <span className="font-mono text-[11px] text-zinc-400">
+                            <span className="font-mono text-[11px] text-zinc-400 dark:text-zinc-500">
                               {taskIdDisplay}
                             </span>
                           </div>
 
                           <span className={`text-[10px] font-medium uppercase ${
                             task.priority === 'critical'
-                              ? 'text-red-600 font-semibold'
+                              ? 'text-red-600 dark:text-red-400 font-semibold'
                               : task.priority === 'high'
-                              ? 'text-amber-600'
-                              : 'text-zinc-500'
+                              ? 'text-amber-600 dark:text-amber-400'
+                              : 'text-zinc-500 dark:text-zinc-400'
                           }`}>
                             {task.priority === 'critical' ? 'Критично' : task.priority === 'high' ? 'Высокий' : 'Обычный'}
                           </span>
                         </div>
 
                         {/* Task Title */}
-                        <h4 className="text-sm font-medium text-zinc-900 mt-1 leading-snug line-clamp-2 group-hover:text-zinc-800">
+                        <h4 className="text-sm font-medium text-zinc-900 dark:text-zinc-100 mt-1 leading-snug line-clamp-2 group-hover:text-zinc-800 dark:group-hover:text-zinc-200">
                           {task.title}
                         </h4>
 
                         {/* Bottom Row: Assignee, Comments, Deadline */}
-                        <div className="mt-2.5 pt-2 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-500">
+                        <div className="mt-2.5 pt-2 border-t border-zinc-100 dark:border-zinc-800/80 flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-400">
                           <span className="truncate max-w-[90px]" title={getAssigneeName(task.assigneeId)}>
                             {getAssigneeName(task.assigneeId).split(' ')[0]}
                           </span>
 
                           <div className="flex items-center gap-2 font-mono">
                             {task.comments.length > 0 && (
-                              <span className="flex items-center gap-1 text-zinc-400">
+                              <span className="flex items-center gap-1 text-zinc-400 dark:text-zinc-500">
                                 <MessageSquare className="w-3 h-3" />
                                 {task.comments.length}
                               </span>
                             )}
 
                             {isOverdue ? (
-                              <span className="font-mono text-[11px] px-1.5 py-0.2 rounded bg-red-50 text-red-700 border border-red-200 font-medium">
+                              <span className="font-mono text-[11px] px-1.5 py-0.2 rounded bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/60 font-medium">
                                 {formatDate(task.deadline)}
                               </span>
                             ) : (
-                              <span className="text-zinc-400">
+                              <span className="text-zinc-400 dark:text-zinc-500">
                                 {formatDate(task.deadline)}
                               </span>
                             )}
@@ -653,7 +653,7 @@ export const TasksView: React.FC = () => {
 
                 {/* Bottom Quick Task Input / Button */}
                 {currentUserRole !== 'guest' && (
-                  <div className="p-2 border-t border-zinc-200/70 bg-zinc-50/60 rounded-b-lg">
+                  <div className="p-2 border-t border-zinc-200/70 dark:border-zinc-800/80 bg-zinc-50/60 dark:bg-zinc-900/40 rounded-b-lg">
                     {quickTaskStageId === stage.id ? (
                       <form onSubmit={e => handleQuickTaskSubmit(stage.id, e)} className="space-y-1.5">
                         <input
@@ -677,13 +677,13 @@ export const TasksView: React.FC = () => {
                               setQuickTaskStageId(null);
                               setQuickTaskTitle('');
                             }}
-                            className="text-[11px] text-zinc-500 hover:text-zinc-800 px-1.5 py-0.5"
+                            className="text-[11px] text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 px-1.5 py-0.5"
                           >
                             Отмена
                           </button>
                           <button
                             type="submit"
-                            className="text-[11px] bg-zinc-900 text-white rounded px-2 py-0.5 hover:bg-zinc-800 font-medium"
+                            className="text-[11px] bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded px-2 py-0.5 hover:bg-zinc-800 dark:hover:bg-zinc-200 font-medium"
                           >
                             Добавить
                           </button>
@@ -695,7 +695,7 @@ export const TasksView: React.FC = () => {
                           setQuickTaskStageId(stage.id);
                           setQuickTaskTitle('');
                         }}
-                        className="w-full py-1 text-xs text-zinc-500 hover:text-zinc-900 flex items-center justify-center gap-1 hover:bg-zinc-200/50 rounded transition-colors"
+                        className="w-full py-1 text-xs text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 flex items-center justify-center gap-1 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded transition-colors"
                       >
                         <Plus className="w-3 h-3" />
                         <span>Быстрая задача</span>
@@ -709,10 +709,10 @@ export const TasksView: React.FC = () => {
 
           {/* Right: Add New Kanban Stage Column */}
           {currentUserRole !== 'guest' && (
-            <div className="w-64 shrink-0 rounded-lg border border-dashed border-zinc-300 bg-zinc-50/50 p-3 min-h-[140px] flex flex-col justify-start">
+            <div className="w-64 shrink-0 rounded-lg border border-dashed border-zinc-300 dark:border-zinc-700 bg-zinc-50/50 dark:bg-[#16161A]/50 p-3 min-h-[140px] flex flex-col justify-start">
               {isAddingStage ? (
                 <form onSubmit={handleCreateNewStage} className="space-y-2.5">
-                  <span className="text-xs font-semibold text-zinc-800 block">Новый этап канбана</span>
+                  <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 block">Новый этап канбана</span>
                   <input
                     type="text"
                     autoFocus
@@ -722,7 +722,7 @@ export const TasksView: React.FC = () => {
                     className="input-base w-full text-xs"
                   />
                   <div>
-                    <span className="text-[10px] text-zinc-500 block mb-1">Цвет этапа:</span>
+                    <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block mb-1">Цвет этапа:</span>
                     <div className="flex items-center gap-1.5">
                       {colorOptions.map(c => (
                         <button
@@ -730,7 +730,7 @@ export const TasksView: React.FC = () => {
                           type="button"
                           onClick={() => setNewStageColor(c)}
                           className={`w-4 h-4 rounded-full ${STAGE_COLOR_MAP[c].bg} ${
-                            newStageColor === c ? 'ring-2 ring-zinc-900 ring-offset-1' : ''
+                            newStageColor === c ? 'ring-2 ring-zinc-900 dark:ring-zinc-100 ring-offset-1' : ''
                           }`}
                         />
                       ))}
@@ -758,7 +758,7 @@ export const TasksView: React.FC = () => {
               ) : (
                 <button
                   onClick={() => setIsAddingStage(true)}
-                  className="w-full h-24 border border-dashed border-zinc-300 rounded-md text-zinc-500 hover:text-zinc-900 hover:border-zinc-400 hover:bg-zinc-100/60 flex flex-col items-center justify-center gap-1.5 text-xs transition-colors"
+                  className="w-full h-24 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-md text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:border-zinc-400 dark:hover:border-zinc-500 hover:bg-zinc-100/60 dark:hover:bg-zinc-800/50 flex flex-col items-center justify-center gap-1.5 text-xs transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                   <span className="font-medium">+ Добавить этап</span>
@@ -773,7 +773,7 @@ export const TasksView: React.FC = () => {
       {viewMode === 'list' && (
         <div className="card-surface overflow-hidden">
           <table className="w-full text-left text-xs border-collapse">
-            <thead className="bg-zinc-50/80 border-b border-zinc-200 text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
+            <thead className="bg-zinc-50/80 dark:bg-zinc-900/60 border-b border-zinc-200 dark:border-zinc-800 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
               <tr>
                 <th className="py-2.5 px-3.5">Статус (Этап)</th>
                 <th className="py-2.5 px-3.5">Задача</th>
@@ -784,10 +784,10 @@ export const TasksView: React.FC = () => {
                 <th className="py-2.5 px-3.5 text-right">Действия</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-zinc-200/80 text-zinc-800">
+            <tbody className="divide-y divide-zinc-200/80 dark:divide-zinc-800/70 text-zinc-800 dark:text-zinc-200">
               {filteredTasks.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-zinc-400">
+                  <td colSpan={7} className="py-8 text-center text-zinc-400 dark:text-zinc-500">
                     Задачи не найдены
                   </td>
                 </tr>
@@ -798,61 +798,61 @@ export const TasksView: React.FC = () => {
                     <tr
                       key={task.id}
                       onClick={() => setSelectedTask(task)}
-                      className="hover:bg-zinc-50/60 transition-colors cursor-pointer"
+                      className="hover:bg-zinc-50/60 dark:hover:bg-zinc-800/40 transition-colors cursor-pointer"
                     >
                       <td className="py-2 px-3.5" onClick={e => e.stopPropagation()}>
                         <select
                           aria-label="Сменить статус задачи"
                           value={task.status}
                           onChange={e => updateTaskStatus(task.id, e.target.value)}
-                          className="h-7 px-2 rounded border border-zinc-200 bg-white text-xs font-medium focus:outline-none focus:border-zinc-900 cursor-pointer"
+                          className="h-7 px-2 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-xs font-medium focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400 cursor-pointer"
                         >
                           {activeKanbanStages.map(st => (
-                            <option key={st.id} value={st.id}>
+                            <option key={st.id} value={st.id} className="dark:bg-zinc-900 dark:text-zinc-100">
                               {st.title}
                             </option>
                           ))}
                         </select>
                       </td>
 
-                      <td className="py-2 px-3.5 font-medium text-zinc-900 max-w-md">
+                      <td className="py-2 px-3.5 font-medium text-zinc-900 dark:text-zinc-100 max-w-md">
                         <div className="truncate">{task.title}</div>
                       </td>
 
                       <td className="py-2 px-3.5">
                         <span className={`text-[11px] font-medium ${
                           task.priority === 'critical'
-                            ? 'text-red-600 font-semibold'
+                            ? 'text-red-600 dark:text-red-400 font-semibold'
                             : task.priority === 'high'
-                            ? 'text-amber-600 font-medium'
-                            : 'text-zinc-500'
+                            ? 'text-amber-600 dark:text-amber-400 font-medium'
+                            : 'text-zinc-500 dark:text-zinc-400'
                         }`}>
                           {task.priority === 'critical' ? 'Критичный' : task.priority === 'high' ? 'Высокий' : 'Обычный'}
                         </span>
                       </td>
 
-                      <td className="py-2 px-3.5 text-zinc-600">
+                      <td className="py-2 px-3.5 text-zinc-600 dark:text-zinc-400">
                         {getAssigneeName(task.assigneeId)}
                       </td>
 
                       <td className="py-2 px-3.5 font-mono">
                         {isOverdue ? (
-                          <span className="px-1.5 py-0.5 rounded bg-red-50 text-red-700 border border-red-200 font-medium">
+                          <span className="px-1.5 py-0.5 rounded bg-red-50 dark:bg-red-950/50 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/60 font-medium">
                             {formatDate(task.deadline)}
                           </span>
                         ) : (
-                          <span className="text-zinc-500">{formatDate(task.deadline)}</span>
+                          <span className="text-zinc-500 dark:text-zinc-400">{formatDate(task.deadline)}</span>
                         )}
                       </td>
 
-                      <td className="py-2 px-3.5 text-center font-mono text-zinc-400">
+                      <td className="py-2 px-3.5 text-center font-mono text-zinc-400 dark:text-zinc-500">
                         {task.comments.length}
                       </td>
 
                       <td className="py-2 px-3.5 text-right" onClick={e => e.stopPropagation()}>
                         <button
                           onClick={() => deleteTask(task.id)}
-                          className="text-zinc-400 hover:text-red-600 p-1 transition-colors"
+                          className="text-zinc-400 hover:text-red-600 dark:hover:text-red-400 p-1 transition-colors"
                           title="Удалить задачу"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -869,15 +869,15 @@ export const TasksView: React.FC = () => {
 
       {/* Modal: Task Detail & Comments */}
       {selectedTask && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40">
-          <div className="bg-white border border-zinc-200 rounded-lg w-full max-w-lg shadow-md overflow-hidden flex flex-col max-h-[85vh]">
-            <div className="px-5 py-3 border-b border-zinc-200 flex items-center justify-between">
-              <span className="text-xs font-semibold text-zinc-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40 dark:bg-black/60">
+          <div className="bg-white dark:bg-[#141418] border border-zinc-200 dark:border-zinc-800 rounded-lg w-full max-w-lg shadow-md overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="px-5 py-3 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+              <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
                 Карточка задачи
               </span>
               <button
                 onClick={() => setSelectedTask(null)}
-                className="text-zinc-400 hover:text-zinc-700 p-1 rounded-md"
+                className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-1 rounded-md"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -885,19 +885,19 @@ export const TasksView: React.FC = () => {
 
             <div className="p-5 space-y-4 overflow-y-auto flex-1">
               <div>
-                <h3 className="text-sm font-semibold text-zinc-900 leading-snug">
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-snug">
                   {selectedTask.title}
                 </h3>
                 {selectedTask.description && (
-                  <p className="text-xs text-zinc-600 mt-1 leading-relaxed bg-zinc-50 p-2.5 rounded border border-zinc-200">
+                  <p className="text-xs text-zinc-600 dark:text-zinc-300 mt-1 leading-relaxed bg-zinc-50 dark:bg-zinc-900/60 p-2.5 rounded border border-zinc-200 dark:border-zinc-800">
                     {selectedTask.description}
                   </p>
                 )}
               </div>
 
-              <div className="grid grid-cols-3 gap-2.5 bg-zinc-50/60 p-3 rounded border border-zinc-200 text-xs">
+              <div className="grid grid-cols-3 gap-2.5 bg-zinc-50/60 dark:bg-zinc-900/40 p-3 rounded border border-zinc-200 dark:border-zinc-800 text-xs">
                 <div>
-                  <span className="text-[10px] uppercase font-medium text-zinc-400 block mb-1">Статус (Этап)</span>
+                  <span className="text-[10px] uppercase font-medium text-zinc-400 dark:text-zinc-500 block mb-1">Статус (Этап)</span>
                   <select
                     value={selectedTask.status}
                     onChange={e => {
@@ -905,10 +905,10 @@ export const TasksView: React.FC = () => {
                       setSelectedTask(updated);
                       updateTask(updated);
                     }}
-                    className="w-full h-7 px-1.5 rounded border border-zinc-200 bg-white text-xs"
+                    className="w-full h-7 px-1.5 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-xs"
                   >
                     {activeKanbanStages.map(st => (
-                      <option key={st.id} value={st.id}>
+                      <option key={st.id} value={st.id} className="dark:bg-zinc-900 dark:text-zinc-100">
                         {st.title}
                       </option>
                     ))}
@@ -916,7 +916,7 @@ export const TasksView: React.FC = () => {
                 </div>
 
                 <div>
-                  <span className="text-[10px] uppercase font-medium text-zinc-400 block mb-1">Ответственный</span>
+                  <span className="text-[10px] uppercase font-medium text-zinc-400 dark:text-zinc-500 block mb-1">Ответственный</span>
                   <select
                     value={selectedTask.assigneeId}
                     onChange={e => {
@@ -924,10 +924,10 @@ export const TasksView: React.FC = () => {
                       setSelectedTask(updated);
                       updateTask(updated);
                     }}
-                    className="w-full h-7 px-1.5 rounded border border-zinc-200 bg-white text-xs truncate"
+                    className="w-full h-7 px-1.5 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-xs truncate"
                   >
                     {activeTeam.map(tm => (
-                      <option key={tm.id} value={tm.id}>
+                      <option key={tm.id} value={tm.id} className="dark:bg-zinc-900 dark:text-zinc-100">
                         {tm.fullName}
                       </option>
                     ))}
@@ -935,7 +935,7 @@ export const TasksView: React.FC = () => {
                 </div>
 
                 <div>
-                  <span className="text-[10px] uppercase font-medium text-zinc-400 block mb-1">Дедлайн</span>
+                  <span className="text-[10px] uppercase font-medium text-zinc-400 dark:text-zinc-500 block mb-1">Дедлайн</span>
                   <input
                     type="date"
                     value={selectedTask.deadline}
@@ -944,33 +944,33 @@ export const TasksView: React.FC = () => {
                       setSelectedTask(updated);
                       updateTask(updated);
                     }}
-                    className="w-full h-7 px-1.5 rounded border border-zinc-200 bg-white text-xs font-mono"
+                    className="w-full h-7 px-1.5 rounded border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 text-xs font-mono"
                   />
                 </div>
               </div>
 
               {/* Comments Section */}
               <div className="space-y-2.5">
-                <div className="text-xs font-semibold text-zinc-700 flex items-center gap-1.5">
-                  <MessageSquare className="w-3.5 h-3.5 text-zinc-500" />
+                <div className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 flex items-center gap-1.5">
+                  <MessageSquare className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
                   Комментарии ({selectedTask.comments.length})
                 </div>
 
                 <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
                   {selectedTask.comments.length === 0 ? (
-                    <p className="text-xs text-zinc-400 py-2 text-center">
+                    <p className="text-xs text-zinc-400 dark:text-zinc-500 py-2 text-center">
                       Нет комментариев
                     </p>
                   ) : (
                     selectedTask.comments.map(c => (
-                      <div key={c.id} className="p-2.5 rounded bg-zinc-50 border border-zinc-200 text-xs">
+                      <div key={c.id} className="p-2.5 rounded bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 text-xs">
                         <div className="flex items-center justify-between text-[11px] mb-1">
-                          <strong className="text-zinc-800 font-medium">{c.authorName}</strong>
-                          <span className="text-zinc-400 font-mono text-[10px]">
+                          <strong className="text-zinc-800 dark:text-zinc-200 font-medium">{c.authorName}</strong>
+                          <span className="text-zinc-400 dark:text-zinc-500 font-mono text-[10px]">
                             {new Date(c.createdAt).toLocaleDateString('ru-RU')}
                           </span>
                         </div>
-                        <p className="text-zinc-700">{c.text}</p>
+                        <p className="text-zinc-700 dark:text-zinc-300">{c.text}</p>
                       </div>
                     ))
                   )}
@@ -992,14 +992,14 @@ export const TasksView: React.FC = () => {
               </div>
             </div>
 
-            <div className="px-5 py-3 border-t border-zinc-200 flex justify-between items-center bg-zinc-50/50">
+            <div className="px-5 py-3 border-t border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-zinc-50/50 dark:bg-zinc-900/50">
               <button
                 type="button"
                 onClick={() => {
                   deleteTask(selectedTask.id);
                   setSelectedTask(null);
                 }}
-                className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1"
+                className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 flex items-center gap-1 cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Удалить
@@ -1018,13 +1018,13 @@ export const TasksView: React.FC = () => {
 
       {/* Modal: Create Task */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40">
-          <div className="bg-white border border-zinc-200 rounded-lg w-full max-w-md shadow-md overflow-hidden flex flex-col">
-            <div className="px-5 py-3 border-b border-zinc-200 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-zinc-900">Новая задача</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40 dark:bg-black/60">
+          <div className="bg-white dark:bg-[#141418] border border-zinc-200 dark:border-zinc-800 rounded-lg w-full max-w-md shadow-md overflow-hidden flex flex-col">
+            <div className="px-5 py-3 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Новая задача</h3>
               <button
                 onClick={() => setIsCreateModalOpen(false)}
-                className="text-zinc-400 hover:text-zinc-700 p-1"
+                className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-1"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1032,7 +1032,7 @@ export const TasksView: React.FC = () => {
 
             <form onSubmit={handleCreateSubmit} className="p-5 space-y-3">
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                   Название задачи <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -1046,20 +1046,20 @@ export const TasksView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                   Описание
                 </label>
                 <textarea
                   rows={2}
                   value={newTaskData.description}
                   onChange={e => setNewTaskData({ ...newTaskData, description: e.target.value })}
-                  className="w-full px-2.5 py-1.5 rounded-md bg-white border border-zinc-200 text-sm text-zinc-900 focus:outline-none focus:border-zinc-900 focus:ring-1 focus:ring-zinc-900 resize-none"
+                  className="w-full px-2.5 py-1.5 rounded-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400 focus:ring-1 focus:ring-zinc-900 dark:focus:ring-zinc-400 resize-none"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                     Ответственный
                   </label>
                   <select
@@ -1068,7 +1068,7 @@ export const TasksView: React.FC = () => {
                     className="input-base w-full cursor-pointer truncate"
                   >
                     {activeTeam.map(tm => (
-                      <option key={tm.id} value={tm.id}>
+                      <option key={tm.id} value={tm.id} className="dark:bg-zinc-900 dark:text-zinc-100">
                         {tm.fullName}
                       </option>
                     ))}
@@ -1076,7 +1076,7 @@ export const TasksView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                     Приоритет
                   </label>
                   <select
@@ -1094,7 +1094,7 @@ export const TasksView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                     Дедлайн
                   </label>
                   <input
@@ -1107,7 +1107,7 @@ export const TasksView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                     Статус (Этап)
                   </label>
                   <select
@@ -1116,7 +1116,7 @@ export const TasksView: React.FC = () => {
                     className="input-base w-full cursor-pointer"
                   >
                     {activeKanbanStages.map(st => (
-                      <option key={st.id} value={st.id}>
+                      <option key={st.id} value={st.id} className="dark:bg-zinc-900 dark:text-zinc-100">
                         {st.title}
                       </option>
                     ))}
@@ -1124,7 +1124,7 @@ export const TasksView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-zinc-200 flex justify-end gap-2">
+              <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsCreateModalOpen(false)}

@@ -21,7 +21,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import { useEventContext } from '../../context/EventContext';
 import { GuestItem, GuestStatus, BroadcastMessage } from '../../types/event';
 import { exportGuestsToCSV } from '../../utils/csvExport';
-import { formatDate } from '../../utils/analytics';
+import { formatDate, pluralizeRu } from '../../utils/analytics';
 
 export const GuestsView: React.FC = () => {
   const {
@@ -209,25 +209,25 @@ export const GuestsView: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* Header and Sub-tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-3">
         <div>
-          <h1 className="text-lg font-semibold text-zinc-900 tracking-tight">
+          <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight">
             Участники и билеты
           </h1>
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
             Реестр делегатов, регистрация, QR-пропуска, чек-ин и рассылки
           </p>
         </div>
 
         {/* Sub-Navigation */}
-        <div className="flex items-center gap-1 bg-zinc-100 p-0.5 rounded-md border border-zinc-200">
+        <div className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-md border border-zinc-200 dark:border-zinc-800">
           {!isGuestMode && (
             <button
               onClick={() => setCurrentSubTab('list')}
               className={`px-3 py-1 rounded text-xs font-medium transition-all ${
                 currentSubTab === 'list'
-                  ? 'bg-white text-zinc-900 shadow-sm'
-                  : 'text-zinc-600 hover:text-zinc-900'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}
             >
               Список ({activeGuests.length})
@@ -238,8 +238,8 @@ export const GuestsView: React.FC = () => {
             onClick={() => setCurrentSubTab('registration')}
             className={`px-3 py-1 rounded text-xs font-medium transition-all ${
               currentSubTab === 'registration'
-                ? 'bg-white text-zinc-900 shadow-sm'
-                : 'text-zinc-600 hover:text-zinc-900'
+                ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
             }`}
           >
             {isGuestMode ? 'Онлайн-регистрация' : 'Регистрация'}
@@ -250,8 +250,8 @@ export const GuestsView: React.FC = () => {
               onClick={() => setCurrentSubTab('terminal')}
               className={`px-3 py-1 rounded text-xs font-medium transition-all ${
                 currentSubTab === 'terminal'
-                  ? 'bg-white text-zinc-900 shadow-sm'
-                  : 'text-zinc-600 hover:text-zinc-900'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}
             >
               QR Чек-ин
@@ -262,8 +262,8 @@ export const GuestsView: React.FC = () => {
             onClick={() => setCurrentSubTab('surveys')}
             className={`px-3 py-1 rounded text-xs font-medium transition-all ${
               currentSubTab === 'surveys'
-                ? 'bg-white text-zinc-900 shadow-sm'
-                : 'text-zinc-600 hover:text-zinc-900'
+                ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
             }`}
           >
             Отзывы ({activeSurveys.length})
@@ -322,10 +322,10 @@ export const GuestsView: React.FC = () => {
                 className="btn-secondary"
                 title="Информировать участников (Рассылка)"
               >
-                <Radio className="w-3.5 h-3.5 text-zinc-600" />
+                <Radio className="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-400" />
                 <span>Рассылка</span>
                 {activeBroadcasts.length > 0 && (
-                  <span className="font-mono text-[10px] bg-zinc-200 px-1.5 py-0.2 rounded text-zinc-700">
+                  <span className="font-mono text-[10px] bg-zinc-200 dark:bg-zinc-800 px-1.5 py-0.2 rounded text-zinc-700 dark:text-zinc-300">
                     {activeBroadcasts.length}
                   </span>
                 )}
@@ -335,7 +335,7 @@ export const GuestsView: React.FC = () => {
                 onClick={() => exportGuestsToCSV(activeGuests, activeEvent.title)}
                 className="btn-secondary"
               >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-zinc-500" />
+                <FileSpreadsheet className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
                 Экспорт CSV
               </button>
 
@@ -352,7 +352,7 @@ export const GuestsView: React.FC = () => {
           {/* Table */}
           <div className="card-surface overflow-hidden">
             <table className="w-full text-left border-collapse text-xs">
-              <thead className="bg-zinc-50/80 border-b border-zinc-200 text-[11px] font-medium text-zinc-500 uppercase tracking-wider">
+              <thead className="bg-zinc-50/80 dark:bg-zinc-900/60 border-b border-zinc-200 dark:border-zinc-800 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                 <tr>
                   <th className="py-2.5 px-3.5">Участник</th>
                   <th className="py-2.5 px-3.5">Организация</th>
@@ -363,7 +363,7 @@ export const GuestsView: React.FC = () => {
                   <th className="py-2.5 px-3.5 text-right"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-zinc-200/80 text-zinc-800">
+              <tbody className="divide-y divide-zinc-200/80 dark:divide-zinc-800/70 text-zinc-800 dark:text-zinc-200">
                 {filteredGuests.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="py-8 text-center text-zinc-400">
@@ -374,22 +374,22 @@ export const GuestsView: React.FC = () => {
                   filteredGuests.map(guest => (
                     <tr
                       key={guest.id}
-                      className="hover:bg-zinc-50/60 transition-colors"
+                      className="hover:bg-zinc-50/60 dark:hover:bg-zinc-800/40 transition-colors"
                     >
-                      <td className="py-2.5 px-3.5 font-medium text-zinc-900">
+                      <td className="py-2.5 px-3.5 font-medium text-zinc-900 dark:text-zinc-100">
                         <div>{guest.fullName}</div>
                         {guest.dietaryNotes && (
-                          <div className="text-[10px] text-zinc-500">
+                          <div className="text-[10px] text-zinc-500 dark:text-zinc-400">
                             Особенности: {guest.dietaryNotes}
                           </div>
                         )}
                       </td>
 
-                      <td className="py-2.5 px-3.5 text-zinc-600">
+                      <td className="py-2.5 px-3.5 text-zinc-600 dark:text-zinc-300">
                         {guest.organization}
                       </td>
 
-                      <td className="py-2.5 px-3.5 text-zinc-500 font-mono text-[11px]">
+                      <td className="py-2.5 px-3.5 text-zinc-500 dark:text-zinc-400 font-mono text-[11px]">
                         <div>{guest.email}</div>
                         <div>{guest.phone}</div>
                       </td>
@@ -397,10 +397,10 @@ export const GuestsView: React.FC = () => {
                       <td className="py-2.5 px-3.5">
                         <span className={`text-[11px] font-medium px-2 py-0.5 rounded border ${
                           guest.ticketType === 'VIP'
-                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800/60'
                             : guest.ticketType === 'Спикер'
-                            ? 'bg-blue-50 text-blue-700 border-blue-200'
-                            : 'bg-zinc-100 text-zinc-700 border-zinc-200'
+                            ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800/60'
+                            : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700'
                         }`}>
                           {guest.ticketType}
                         </span>
@@ -411,7 +411,7 @@ export const GuestsView: React.FC = () => {
                           aria-label="Изменить статус участника"
                           value={guest.status}
                           onChange={e => updateGuest({ ...guest, status: e.target.value as GuestStatus })}
-                          className="h-7 px-1.5 rounded border border-zinc-200 bg-white text-xs font-medium focus:outline-none focus:border-zinc-900 cursor-pointer"
+                          className="h-7 px-1.5 rounded border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400 cursor-pointer"
                         >
                           <option value="registered">Зарегистрирован</option>
                           <option value="confirmed">Подтвержден</option>
@@ -420,10 +420,10 @@ export const GuestsView: React.FC = () => {
                         </select>
                       </td>
 
-                      <td className="py-2.5 px-3.5 font-mono text-[11px] text-zinc-500">
+                      <td className="py-2.5 px-3.5 font-mono text-[11px] text-zinc-500 dark:text-zinc-400">
                         <button
                           onClick={() => setViewTicketGuest(guest)}
-                          className="hover:text-zinc-900 underline flex items-center gap-1"
+                          className="hover:text-zinc-900 dark:hover:text-zinc-100 underline flex items-center gap-1"
                           title="Посмотреть QR билет"
                         >
                           <QrCode className="w-3.5 h-3.5 text-zinc-400" />
@@ -434,7 +434,7 @@ export const GuestsView: React.FC = () => {
                       <td className="py-2.5 px-3.5 text-right">
                         <button
                           onClick={() => deleteGuest(guest.id)}
-                          className="text-zinc-400 hover:text-red-600 p-1 transition-colors"
+                          className="text-zinc-400 hover:text-red-600 dark:hover:text-red-400 p-1 transition-colors"
                           title="Удалить участника"
                         >
                           <X className="w-3.5 h-3.5" />
@@ -452,18 +452,18 @@ export const GuestsView: React.FC = () => {
       {/* SUBTAB 2: REGISTRATION FORM */}
       {currentSubTab === 'registration' && (
         <div className="max-w-xl mx-auto card-surface p-6">
-          <div className="border-b border-zinc-200 pb-4 mb-4">
-            <h2 className="text-base font-semibold text-zinc-900">
+          <div className="border-b border-zinc-200 dark:border-zinc-800 pb-4 mb-4">
+            <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
               {isGuestMode ? 'Регистрация на мероприятие' : 'Ручная регистрация нового гостя'}
             </h2>
-            <p className="text-xs text-zinc-500 mt-0.5">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
               После заполнения формы генерируется персональный QR-билет для прохода через терминал.
             </p>
           </div>
 
           <form onSubmit={handleRegSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-zinc-700 mb-1">
+              <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                 ФИО участника <span className="text-red-500">*</span>
               </label>
               <input
@@ -478,7 +478,7 @@ export const GuestsView: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                   Электронная почта <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -492,7 +492,7 @@ export const GuestsView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                   Номер телефона
                 </label>
                 <input
@@ -507,7 +507,7 @@ export const GuestsView: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                   Организация / Компания
                 </label>
                 <input
@@ -520,7 +520,7 @@ export const GuestsView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                   Категория билета
                 </label>
                 <select
@@ -537,7 +537,7 @@ export const GuestsView: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-zinc-700 mb-1">
+              <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                 Пожелания по питанию / Комментарий
               </label>
               <input
@@ -565,19 +565,19 @@ export const GuestsView: React.FC = () => {
       {currentSubTab === 'terminal' && !isGuestMode && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <div className="lg:col-span-2 card-surface p-5 space-y-4">
-            <div className="border-b border-zinc-200 pb-3">
-              <h2 className="text-base font-semibold text-zinc-900 flex items-center gap-2">
-                <ScanLine className="w-4 h-4 text-zinc-900" />
+            <div className="border-b border-zinc-200 dark:border-zinc-800 pb-3">
+              <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+                <ScanLine className="w-4 h-4 text-zinc-900 dark:text-zinc-100" />
                 Терминал сканирования билетов на входе
               </h2>
-              <p className="text-xs text-zinc-500 mt-0.5">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                 Введите токен из QR-кода или выберите участника для мгновенной фиксации явки
               </p>
             </div>
 
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                   Скан или ввод токена пропуска
                 </label>
                 <div className="flex gap-2">
@@ -604,7 +604,7 @@ export const GuestsView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                   Или быстрый выбор из списка ожидающих:
                 </label>
                 <select
@@ -628,11 +628,11 @@ export const GuestsView: React.FC = () => {
             </div>
 
             {selectedTerminalGuest && (
-              <div className="bg-zinc-50 border border-zinc-200 rounded-md p-4 flex items-center justify-between">
+              <div className="bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 rounded-md p-4 flex items-center justify-between">
                 <div>
                   <span className="text-[10px] uppercase font-mono text-zinc-400 block">Найден участник</span>
-                  <h4 className="text-sm font-semibold text-zinc-900 mt-0.5">{selectedTerminalGuest.fullName}</h4>
-                  <p className="text-xs text-zinc-500 font-mono">{selectedTerminalGuest.organization} • {selectedTerminalGuest.ticketType}</p>
+                  <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mt-0.5">{selectedTerminalGuest.fullName}</h4>
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">{selectedTerminalGuest.organization} • {selectedTerminalGuest.ticketType}</p>
                 </div>
                 <button
                   onClick={handleTerminalCheckIn}
@@ -645,12 +645,12 @@ export const GuestsView: React.FC = () => {
           </div>
 
           <div className="card-surface p-5 space-y-3">
-            <h3 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider">
+            <h3 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
               Последние отметки явки
             </h3>
             <div className="space-y-2 max-h-80 overflow-y-auto">
               {activeGuests.filter(g => g.status === 'checked_in').length === 0 ? (
-                <div className="text-xs text-zinc-400 text-center py-6">
+                <div className="text-xs text-zinc-400 dark:text-zinc-500 text-center py-6">
                   На площадку еще никто не прибыл
                 </div>
               ) : (
@@ -658,12 +658,12 @@ export const GuestsView: React.FC = () => {
                   .filter(g => g.status === 'checked_in')
                   .slice(0, 10)
                   .map(g => (
-                    <div key={g.id} className="p-2 rounded bg-zinc-50 border border-zinc-200 text-xs flex items-center justify-between">
+                    <div key={g.id} className="p-2 rounded bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 text-xs flex items-center justify-between">
                       <div>
-                        <div className="font-medium text-zinc-900">{g.fullName}</div>
-                        <div className="text-[10px] text-zinc-500 font-mono">{g.organization}</div>
+                        <div className="font-medium text-zinc-900 dark:text-zinc-100">{g.fullName}</div>
+                        <div className="text-[10px] text-zinc-500 dark:text-zinc-400 font-mono">{g.organization}</div>
                       </div>
-                      <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                      <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800/60">
                         Чек-ин
                       </span>
                     </div>
@@ -679,17 +679,17 @@ export const GuestsView: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
           <div className="lg:col-span-1 card-surface p-5 space-y-4">
             <div>
-              <h2 className="text-sm font-semibold text-zinc-900">
+              <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 Оставить отзыв о мероприятии
               </h2>
-              <p className="text-xs text-zinc-500 mt-0.5">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                 Анкета удовлетворенности для расчета NPS и качества организации
               </p>
             </div>
 
             <form onSubmit={handleSurveySubmit} className="space-y-3.5">
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                   Ваше имя (или оставьте пустым)
                 </label>
                 <input
@@ -702,7 +702,7 @@ export const GuestsView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                   Оценка мероприятия
                 </label>
                 <div className="flex items-center gap-1.5">
@@ -717,19 +717,19 @@ export const GuestsView: React.FC = () => {
                         className={`w-6 h-6 ${
                           star <= surveyRating
                             ? 'text-amber-500 fill-amber-500'
-                            : 'text-zinc-300'
+                            : 'text-zinc-300 dark:text-zinc-600'
                         }`}
                       />
                     </button>
                   ))}
-                  <span className="font-mono text-xs font-semibold text-zinc-700 ml-2">
+                  <span className="font-mono text-xs font-semibold text-zinc-700 dark:text-zinc-300 ml-2">
                     {surveyRating} / 5
                   </span>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                   Отзыв / Впечатления <span className="text-red-500">*</span>
                 </label>
                 <textarea
@@ -738,7 +738,7 @@ export const GuestsView: React.FC = () => {
                   placeholder="Что понравилось, а что стоит улучшить?"
                   value={surveyFeedback}
                   onChange={e => setSurveyFeedback(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-md bg-white border border-zinc-200 text-xs text-zinc-900 focus:outline-none focus:border-zinc-900 resize-none"
+                  className="w-full px-2.5 py-1.5 rounded-md bg-white dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400 resize-none"
                 />
               </div>
 
@@ -750,9 +750,9 @@ export const GuestsView: React.FC = () => {
           </div>
 
           <div className="lg:col-span-2 card-surface p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-zinc-200 pb-3">
+            <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-3">
               <div>
-                <h3 className="text-sm font-semibold text-zinc-900">
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                   Лента отзывов участников ({activeSurveys.length})
                 </h3>
               </div>
@@ -760,31 +760,31 @@ export const GuestsView: React.FC = () => {
 
             <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1">
               {activeSurveys.length === 0 ? (
-                <div className="py-12 text-center text-xs text-zinc-400">
+                <div className="py-12 text-center text-xs text-zinc-400 dark:text-zinc-500">
                   Отзывов пока нет. Будьте первыми, кто оставит впечатление!
                 </div>
               ) : (
                 activeSurveys.map(s => (
-                  <div key={s.id} className="p-3.5 rounded-lg border border-zinc-200 bg-zinc-50/50 space-y-2">
+                  <div key={s.id} className="p-3.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/40 space-y-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <strong className="text-xs font-semibold text-zinc-900">{s.guestName}</strong>
+                        <strong className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">{s.guestName}</strong>
                         <div className="flex items-center gap-0.5">
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
                               className={`w-3 h-3 ${
-                                i < s.rating ? 'text-amber-500 fill-amber-500' : 'text-zinc-200'
+                                i < s.rating ? 'text-amber-500 fill-amber-500' : 'text-zinc-200 dark:text-zinc-700'
                               }`}
                             />
                           ))}
                         </div>
                       </div>
-                      <span className="font-mono text-[10px] text-zinc-400">
+                      <span className="font-mono text-[10px] text-zinc-400 dark:text-zinc-500">
                         {new Date(s.submittedAt).toLocaleDateString('ru-RU')}
                       </span>
                     </div>
-                    <p className="text-xs text-zinc-700 leading-relaxed">{s.feedback}</p>
+                    <p className="text-xs text-zinc-700 dark:text-zinc-300 leading-relaxed">{s.feedback}</p>
                   </div>
                 ))
               )}
@@ -795,23 +795,23 @@ export const GuestsView: React.FC = () => {
 
       {/* Broadcast Modal (Center of Communication) */}
       {isBroadcastModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/50 animate-fade-in">
-          <div className="bg-white border border-zinc-200 rounded-lg w-full max-w-2xl shadow-xl overflow-hidden flex flex-col max-h-[85vh]">
-            <div className="px-5 py-3.5 border-b border-zinc-200 flex items-center justify-between bg-zinc-50/70">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white dark:bg-[#141418] border border-zinc-200 dark:border-zinc-800 rounded-lg w-full max-w-2xl shadow-xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="px-5 py-3.5 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/70 dark:bg-zinc-900/70">
               <div className="flex items-center gap-2">
-                <Radio className="w-4 h-4 text-zinc-900" />
+                <Radio className="w-4 h-4 text-zinc-900 dark:text-zinc-100" />
                 <div>
-                  <h3 className="text-sm font-semibold text-zinc-900">
+                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                     Центр уведомлений и рассылок участникам
                   </h3>
-                  <p className="text-xs text-zinc-500">
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
                     Оповещения об изменении программы, напоминания о регистрации и опросы
                   </p>
                 </div>
               </div>
               <button
                 onClick={() => setIsBroadcastModalOpen(false)}
-                className="text-zinc-400 hover:text-zinc-700 p-1"
+                className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-1"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -820,7 +820,7 @@ export const GuestsView: React.FC = () => {
             <div className="p-5 space-y-4 overflow-y-auto flex-1">
               {/* Fast Templates */}
               <div>
-                <span className="text-[11px] font-medium text-zinc-500 uppercase block mb-1.5">
+                <span className="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase block mb-1.5">
                   Быстрые шаблоны:
                 </span>
                 <div className="flex flex-wrap gap-1.5">
@@ -832,7 +832,7 @@ export const GuestsView: React.FC = () => {
                         'Уважаемый участник! Регистрация на площадке начинается за 1 час до старта. Пожалуйста, приготовьте ваш электронный QR-билет для сканирования на входе.'
                       )
                     }
-                    className="text-xs px-2.5 py-1 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-200 transition-colors"
+                    className="text-xs px-2.5 py-1 rounded bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 transition-colors"
                   >
                     ⏰ Напоминание о регистрации
                   </button>
@@ -844,7 +844,7 @@ export const GuestsView: React.FC = () => {
                         'Внимание! В расписание ключевых докладов и сессий внесены небольшие уточнения. Ознакомиться со свежим таймингом можно во вкладке Календарь.'
                       )
                     }
-                    className="text-xs px-2.5 py-1 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-200 transition-colors"
+                    className="text-xs px-2.5 py-1 rounded bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 transition-colors"
                   >
                     📢 Изменение программы
                   </button>
@@ -856,7 +856,7 @@ export const GuestsView: React.FC = () => {
                         'Ваш персональный пропуск подтвержден. Предъявите QR-код билета из личного кабинета сотруднику зоны регистрации.'
                       )
                     }
-                    className="text-xs px-2.5 py-1 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-200 transition-colors"
+                    className="text-xs px-2.5 py-1 rounded bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 transition-colors"
                   >
                     🎟 QR-билеты
                   </button>
@@ -868,7 +868,7 @@ export const GuestsView: React.FC = () => {
                         'Благодарим вас за участие! Пожалуйста, оставьте короткий отзыв и оценку во вкладке «Отзывы» — это займет не более 30 секунд.'
                       )
                     }
-                    className="text-xs px-2.5 py-1 rounded bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-200 transition-colors"
+                    className="text-xs px-2.5 py-1 rounded bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 transition-colors"
                   >
                     ⭐️ Сбор отзывов
                   </button>
@@ -876,10 +876,10 @@ export const GuestsView: React.FC = () => {
               </div>
 
               {/* Compose Broadcast Form */}
-              <form onSubmit={handleBroadcastSubmit} className="space-y-3 pt-2 border-t border-zinc-100">
+              <form onSubmit={handleBroadcastSubmit} className="space-y-3 pt-2 border-t border-zinc-100 dark:border-zinc-800">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-medium text-zinc-700 mb-1">
+                    <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                       Тема сообщения <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -893,7 +893,7 @@ export const GuestsView: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-zinc-700 mb-1">
+                    <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                       Аудитория получателей
                     </label>
                     <select
@@ -910,7 +910,7 @@ export const GuestsView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                     Текст рассылки <span className="text-red-500">*</span>
                   </label>
                   <textarea
@@ -919,13 +919,13 @@ export const GuestsView: React.FC = () => {
                     placeholder="Напишите текст сообщения для отправки..."
                     value={broadcastMessage}
                     onChange={e => setBroadcastMessage(e.target.value)}
-                    className="w-full px-2.5 py-1.5 rounded-md bg-white border border-zinc-200 text-xs text-zinc-900 focus:outline-none focus:border-zinc-900 resize-none leading-relaxed"
+                    className="w-full px-2.5 py-1.5 rounded-md bg-white dark:bg-zinc-900/90 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400 resize-none leading-relaxed"
                   />
                 </div>
 
                 <div className="flex items-center justify-between pt-1">
-                  <span className="text-xs text-zinc-500 font-mono">
-                    Получателей: <strong className="text-zinc-900">{getRecipientCount(broadcastAudience)}</strong>
+                  <span className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
+                    Получателей: <strong className="text-zinc-900 dark:text-zinc-100">{getRecipientCount(broadcastAudience)}</strong>
                   </span>
                   <button type="submit" className="btn-primary">
                     <Send className="w-3.5 h-3.5" />
@@ -935,29 +935,29 @@ export const GuestsView: React.FC = () => {
               </form>
 
               {/* History Log */}
-              <div className="pt-3 border-t border-zinc-200">
-                <span className="text-xs font-semibold text-zinc-800 flex items-center gap-1.5 mb-2">
-                  <History className="w-3.5 h-3.5 text-zinc-500" />
+              <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800">
+                <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5 mb-2">
+                  <History className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
                   История отправленных рассылок ({activeBroadcasts.length})
                 </span>
 
                 <div className="space-y-2 max-h-48 overflow-y-auto">
                   {activeBroadcasts.length === 0 ? (
-                    <div className="text-xs text-zinc-400 py-3 text-center border border-dashed border-zinc-200 rounded">
+                    <div className="text-xs text-zinc-400 dark:text-zinc-500 py-3 text-center border border-dashed border-zinc-200 dark:border-zinc-800 rounded">
                       Рассылок еще не было
                     </div>
                   ) : (
                     activeBroadcasts.map(bc => (
-                      <div key={bc.id} className="p-2.5 rounded bg-zinc-50 border border-zinc-200 text-xs space-y-1">
+                      <div key={bc.id} className="p-2.5 rounded bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 text-xs space-y-1">
                         <div className="flex items-center justify-between">
-                          <strong className="text-zinc-900 font-medium">{bc.title}</strong>
-                          <span className="font-mono text-[10px] text-zinc-400">
+                          <strong className="text-zinc-900 dark:text-zinc-100 font-medium">{bc.title}</strong>
+                          <span className="font-mono text-[10px] text-zinc-400 dark:text-zinc-500">
                             {new Date(bc.sentAt).toLocaleString('ru-RU')}
                           </span>
                         </div>
-                        <p className="text-zinc-600 line-clamp-2 leading-relaxed text-[11px]">{bc.message}</p>
-                        <div className="flex items-center gap-2 pt-1 font-mono text-[10px] text-zinc-400">
-                          <span className="px-1.5 py-0.2 bg-zinc-200/60 rounded text-zinc-700">
+                        <p className="text-zinc-600 dark:text-zinc-300 line-clamp-2 leading-relaxed text-[11px]">{bc.message}</p>
+                        <div className="flex items-center gap-2 pt-1 font-mono text-[10px] text-zinc-400 dark:text-zinc-500">
+                          <span className="px-1.5 py-0.2 bg-zinc-200/60 dark:bg-zinc-800 rounded text-zinc-700 dark:text-zinc-300">
                             {bc.audience}
                           </span>
                           <span>•</span>
@@ -970,7 +970,7 @@ export const GuestsView: React.FC = () => {
               </div>
             </div>
 
-            <div className="px-5 py-3 border-t border-zinc-200 flex justify-end bg-zinc-50/50">
+            <div className="px-5 py-3 border-t border-zinc-200 dark:border-zinc-800 flex justify-end bg-zinc-50/50 dark:bg-zinc-900/50">
               <button
                 type="button"
                 onClick={() => setIsBroadcastModalOpen(false)}
@@ -985,37 +985,40 @@ export const GuestsView: React.FC = () => {
 
       {/* Clean Boarding Pass / Badge Ticket Modal */}
       {viewTicketGuest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40">
-          <div className="bg-white border border-zinc-300 rounded-lg w-full max-w-sm shadow-md overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/60 backdrop-blur-xs">
+          <div className="bg-white dark:bg-[#141418] border border-zinc-300 dark:border-zinc-800 rounded-lg w-full max-w-sm shadow-md overflow-hidden flex flex-col">
             {/* Ticket Header */}
-            <div className="p-5 border-b border-zinc-200 flex items-start justify-between bg-zinc-50">
+            <div className="p-5 border-b border-zinc-200 dark:border-zinc-800 flex items-start justify-between bg-zinc-50 dark:bg-zinc-900/70">
               <div>
                 <div className="flex items-center gap-2 mb-1.5">
-                  <img src="/logo.png" alt="EventTech" className="h-4 w-auto object-contain" />
-                  <span className="font-mono text-[10px] uppercase font-semibold text-zinc-500 tracking-wider">
+                  <div className="bg-white dark:bg-zinc-100 px-1.5 py-0.5 rounded border border-zinc-200/60 dark:border-zinc-700 inline-flex items-center">
+                    <img src="/logo.png" alt="EventTech" className="h-3.5 w-auto object-contain" />
+                  </div>
+                  <span className="font-mono text-[10px] uppercase font-semibold text-zinc-500 dark:text-zinc-400 tracking-wider">
                     Электронный пропуск
                   </span>
                 </div>
-                <h3 className="text-sm font-semibold text-zinc-900 leading-snug">
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-snug">
                   {activeEvent.title}
                 </h3>
-                <p className="text-xs text-zinc-500 mt-0.5">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                   {activeEvent.location}
                 </p>
               </div>
               <button
                 onClick={() => setViewTicketGuest(null)}
-                className="text-zinc-400 hover:text-zinc-700 p-1"
+                className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-1"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {/* Perforation Line */}
-            <div className="border-t border-dashed border-zinc-300 my-0"></div>
+            <div className="border-t border-dashed border-zinc-300 dark:border-zinc-800 my-0"></div>
 
             {/* Ticket Body */}
             <div className="p-5 text-center space-y-4">
+              {/* SVG QR Code Pod - Explicitly pure white for camera scanner readability */}
               <div className="inline-block p-3 border border-zinc-200 rounded-md bg-white shadow-sm">
                 <QRCodeSVG
                   value={viewTicketGuest.qrCodeToken}
@@ -1026,28 +1029,28 @@ export const GuestsView: React.FC = () => {
               </div>
 
               <div>
-                <h4 className="text-base font-semibold text-zinc-900">
+                <h4 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
                   {viewTicketGuest.fullName}
                 </h4>
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
                   {viewTicketGuest.organization}
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-2 text-left bg-zinc-50 p-2.5 rounded border border-zinc-200 text-xs">
+              <div className="grid grid-cols-2 gap-2 text-left bg-zinc-50 dark:bg-zinc-900/60 p-2.5 rounded border border-zinc-200 dark:border-zinc-800 text-xs">
                 <div>
                   <span className="text-[10px] uppercase font-medium text-zinc-400 block">Категория</span>
-                  <strong className="text-zinc-800">{viewTicketGuest.ticketType}</strong>
+                  <strong className="text-zinc-800 dark:text-zinc-200">{viewTicketGuest.ticketType}</strong>
                 </div>
                 <div>
                   <span className="text-[10px] uppercase font-medium text-zinc-400 block">Статус</span>
-                  <strong className="text-zinc-800">
+                  <strong className="text-zinc-800 dark:text-zinc-200">
                     {viewTicketGuest.status === 'checked_in' ? 'На площадке' : 'Подтвержден'}
                   </strong>
                 </div>
               </div>
 
-              <div className="font-mono text-xs text-zinc-500 bg-zinc-100 py-1 px-2 rounded border border-zinc-200">
+              <div className="font-mono text-xs text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-900 py-1 px-2 rounded border border-zinc-200 dark:border-zinc-800">
                 {viewTicketGuest.qrCodeToken}
               </div>
 

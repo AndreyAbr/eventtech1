@@ -6,7 +6,7 @@ import {
   Calendar as CalendarIcon
 } from 'lucide-react';
 import { useEventContext } from '../../context/EventContext';
-import { formatDate, isTaskOverdue } from '../../utils/analytics';
+import { formatDate, isTaskOverdue, pluralizeRu } from '../../utils/analytics';
 
 export const CalendarView: React.FC = () => {
   const {
@@ -108,12 +108,12 @@ export const CalendarView: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* Top Calendar Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-3">
         <div>
-          <h1 className="text-lg font-semibold text-zinc-900 tracking-tight capitalize">
+          <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight capitalize">
             {monthNames[month]} {year}
           </h1>
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
             Сетка проведения мероприятий и контрольных дедлайнов
           </p>
         </div>
@@ -125,17 +125,17 @@ export const CalendarView: React.FC = () => {
           >
             Сегодня
           </button>
-          <div className="flex items-center bg-zinc-100 rounded-md border border-zinc-200 p-0.5">
+          <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 rounded-md border border-zinc-200 dark:border-zinc-800 p-0.5">
             <button
               onClick={handlePrevMonth}
-              className="p-1 rounded text-zinc-500 hover:text-zinc-900 transition-colors"
+              className="p-1 rounded text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
               title="Предыдущий месяц"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               onClick={handleNextMonth}
-              className="p-1 rounded text-zinc-500 hover:text-zinc-900 transition-colors"
+              className="p-1 rounded text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
               title="Следующий месяц"
             >
               <ChevronRight className="w-4 h-4" />
@@ -149,7 +149,7 @@ export const CalendarView: React.FC = () => {
         {/* Left (2 cols): Calendar Grid */}
         <div className="xl:col-span-2 card-surface p-4">
           {/* Day of Week Headers */}
-          <div className="grid grid-cols-7 gap-px text-center font-medium text-zinc-400 text-xs mb-1 uppercase tracking-wider">
+          <div className="grid grid-cols-7 gap-px text-center font-medium text-zinc-400 dark:text-zinc-500 text-xs mb-1 uppercase tracking-wider">
             {daysOfWeek.map(d => (
               <div key={d} className="py-1.5">
                 {d}
@@ -158,7 +158,7 @@ export const CalendarView: React.FC = () => {
           </div>
 
           {/* Day Cells Grid */}
-          <div className="grid grid-cols-7 border-t border-l border-zinc-200">
+          <div className="grid grid-cols-7 border-t border-l border-zinc-200 dark:border-zinc-800">
             {calendarCells.map((cell, idx) => {
               const isToday = cell.dateStr === todayStr;
               const dayEvents = events.filter(e => e.startDate === cell.dateStr);
@@ -167,22 +167,22 @@ export const CalendarView: React.FC = () => {
               return (
                 <div
                   key={idx}
-                  className={`border-r border-b border-zinc-200 min-h-[96px] p-1.5 flex flex-col justify-between transition-colors ${
+                  className={`border-r border-b border-zinc-200 dark:border-zinc-800 min-h-[96px] p-1.5 flex flex-col justify-between transition-colors ${
                     isToday
-                      ? 'bg-zinc-50/90'
+                      ? 'bg-zinc-100/70 dark:bg-zinc-800/60'
                       : cell.isCurrentMonth
-                      ? 'bg-white hover:bg-zinc-50/40'
-                      : 'bg-zinc-50/30 opacity-40'
+                      ? 'bg-white dark:bg-[#121215] hover:bg-zinc-50/40 dark:hover:bg-zinc-800/40'
+                      : 'bg-zinc-50/30 dark:bg-zinc-900/30 opacity-40'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span
                       className={`text-xs font-mono font-medium w-5 h-5 rounded-full flex items-center justify-center ${
                         isToday
-                          ? 'bg-zinc-900 text-white font-semibold'
+                          ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-semibold'
                           : cell.isCurrentMonth
-                          ? 'text-zinc-700'
-                          : 'text-zinc-400'
+                          ? 'text-zinc-700 dark:text-zinc-300'
+                          : 'text-zinc-400 dark:text-zinc-600'
                       }`}
                     >
                       {cell.dayNumber}
@@ -195,7 +195,7 @@ export const CalendarView: React.FC = () => {
                       <div
                         key={ev.id}
                         onClick={() => handleItemClick(ev.id, 'event')}
-                        className="text-[10px] px-1.5 py-0.5 rounded truncate font-medium border border-zinc-300 bg-zinc-100 hover:bg-zinc-200 text-zinc-900 cursor-pointer"
+                        className="text-[10px] px-1.5 py-0.5 rounded truncate font-medium border border-zinc-300 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 cursor-pointer"
                         title={ev.title}
                       >
                         {ev.title}
@@ -211,10 +211,10 @@ export const CalendarView: React.FC = () => {
                           onClick={() => handleItemClick(t.eventId, 'task')}
                           className={`text-[10px] px-1.5 py-0.5 rounded truncate font-medium cursor-pointer border ${
                             t.status === 'done'
-                              ? 'bg-zinc-100 text-zinc-400 line-through border-zinc-200'
+                              ? 'bg-zinc-100 dark:bg-zinc-800/50 text-zinc-400 dark:text-zinc-500 line-through border-zinc-200 dark:border-zinc-800'
                               : isOver
-                              ? 'bg-red-50 text-red-700 border-red-200'
-                              : 'bg-zinc-50 text-zinc-700 border-zinc-200'
+                              ? 'bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 border-red-200 dark:border-red-900/60'
+                              : 'bg-zinc-50 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-700'
                           }`}
                           title={t.title}
                         >
@@ -231,18 +231,18 @@ export const CalendarView: React.FC = () => {
 
         {/* Right (1 col): Milestones Timeline */}
         <div className="card-surface p-4 flex flex-col max-h-[700px]">
-          <div className="flex items-center justify-between border-b border-zinc-200 pb-2.5 mb-3">
-            <h2 className="text-xs font-semibold text-zinc-900 uppercase tracking-wider">
+          <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-2.5 mb-3">
+            <h2 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
               Контрольные точки
             </h2>
-            <span className="font-mono text-xs text-zinc-400">
-              {timelineItems.length} событий
+            <span className="font-mono text-xs text-zinc-400 dark:text-zinc-500">
+              {timelineItems.length} {pluralizeRu(timelineItems.length, ['событие', 'события', 'событий'])}
             </span>
           </div>
 
-          <div className="space-y-2 overflow-y-auto flex-1 pr-1 divide-y divide-zinc-100">
+          <div className="space-y-2 overflow-y-auto flex-1 pr-1 divide-y divide-zinc-100 dark:divide-zinc-800/80">
             {timelineItems.length === 0 ? (
-              <div className="py-8 text-center text-xs text-zinc-400">
+              <div className="py-8 text-center text-xs text-zinc-400 dark:text-zinc-500">
                 Событий нет
               </div>
             ) : (
@@ -255,21 +255,21 @@ export const CalendarView: React.FC = () => {
                     className="pt-2 first:pt-0 cursor-pointer group"
                   >
                     <div className="flex items-center justify-between text-[11px] mb-0.5">
-                      <span className="font-mono text-zinc-500">
+                      <span className="font-mono text-zinc-500 dark:text-zinc-400">
                         {formatDate(item.date)}
                       </span>
                       <span className={`font-mono text-[10px] px-1 py-0.2 rounded uppercase ${
-                        isEvent ? 'bg-zinc-100 text-zinc-800' : 'text-zinc-400'
+                        isEvent ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200' : 'text-zinc-400 dark:text-zinc-500'
                       }`}>
                         {isEvent ? 'Ивент' : 'Дедлайн'}
                       </span>
                     </div>
 
-                    <h4 className="text-xs font-medium text-zinc-900 group-hover:underline truncate">
+                    <h4 className="text-xs font-medium text-zinc-900 dark:text-zinc-100 group-hover:underline truncate">
                       {item.title}
                     </h4>
 
-                    <p className="text-[11px] text-zinc-500 truncate">
+                    <p className="text-[11px] text-zinc-500 dark:text-zinc-400 truncate">
                       {item.subtitle}
                     </p>
                   </div>

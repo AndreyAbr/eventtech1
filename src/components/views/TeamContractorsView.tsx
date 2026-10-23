@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { useEventContext } from '../../context/EventContext';
 import { TeamMember, ContractorItem, ContractorStatus, MarketplaceItem } from '../../types/event';
-import { formatCurrency } from '../../utils/analytics';
+import { formatCurrency, pluralizeRu } from '../../utils/analytics';
 
 export const TeamContractorsView: React.FC = () => {
   const {
@@ -180,24 +180,24 @@ export const TeamContractorsView: React.FC = () => {
   return (
     <div className="space-y-4">
       {/* Top Header & 3-Tab Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-3">
         <div>
-          <h1 className="text-lg font-semibold text-zinc-900 tracking-tight">
+          <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight">
             Команда, подрядчики и каталог
           </h1>
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
             Организационный комитет, нанятые подрядчики и поиск поставщиков со сравнением
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center bg-zinc-100 p-0.5 rounded-md border border-zinc-200">
+          <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-md border border-zinc-200 dark:border-zinc-800">
             <button
               onClick={() => setActiveSection('team')}
               className={`px-3 py-1 rounded text-xs font-medium transition-all ${
                 activeSection === 'team'
-                  ? 'bg-white text-zinc-900 shadow-sm'
-                : 'text-zinc-600 hover:text-zinc-900'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}
             >
               Команда ({activeTeam.length})
@@ -206,8 +206,8 @@ export const TeamContractorsView: React.FC = () => {
               onClick={() => setActiveSection('contractors')}
               className={`px-3 py-1 rounded text-xs font-medium transition-all ${
                 activeSection === 'contractors'
-                  ? 'bg-white text-zinc-900 shadow-sm'
-                  : 'text-zinc-600 hover:text-zinc-900'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}
             >
               Подрядчики ({activeContractors.length})
@@ -216,8 +216,8 @@ export const TeamContractorsView: React.FC = () => {
               onClick={() => setActiveSection('marketplace')}
               className={`px-3 py-1 rounded text-xs font-medium transition-all ${
                 activeSection === 'marketplace'
-                  ? 'bg-white text-zinc-900 shadow-sm'
-                  : 'text-zinc-600 hover:text-zinc-900'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}
             >
               Каталог площадок ({marketplaceItems.length})
@@ -254,27 +254,27 @@ export const TeamContractorsView: React.FC = () => {
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div>
-                      <h4 className="text-sm font-semibold text-zinc-900">
+                      <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                         {member.fullName}
                       </h4>
-                      <p className="text-xs text-zinc-500">
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">
                         {member.roleTitle}
                       </p>
                     </div>
 
-                    <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-600 border border-zinc-200 uppercase">
+                    <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 uppercase">
                       {member.systemRole === 'admin' ? 'Admin' : 'Team'}
                     </span>
                   </div>
 
-                  <div className="text-xs text-zinc-600 bg-zinc-50 p-2.5 rounded border border-zinc-200 mb-3">
+                  <div className="text-xs text-zinc-600 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-900/60 p-2.5 rounded border border-zinc-200 dark:border-zinc-800 mb-3">
                     <span className="text-[10px] font-medium text-zinc-400 uppercase block mb-0.5">
                       Зона ответственности
                     </span>
                     {member.zoneOfResponsibility || 'Общая координация'}
                   </div>
 
-                  <div className="space-y-1 text-xs text-zinc-500 mb-3 font-mono text-[11px]">
+                  <div className="space-y-1 text-xs text-zinc-500 dark:text-zinc-400 mb-3 font-mono text-[11px]">
                     <div className="flex items-center gap-2">
                       <Mail className="w-3 h-3 text-zinc-400" />
                       <span>{member.email}</span>
@@ -287,25 +287,25 @@ export const TeamContractorsView: React.FC = () => {
                 </div>
 
                 {/* Clickable task count to filter TasksView */}
-                <div className="pt-2.5 border-t border-zinc-100 flex items-center justify-between text-xs">
+                <div className="pt-2.5 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-xs">
                   <button
                     onClick={() => {
                       setSelectedTeamMemberFilter(member.id);
                       setActiveTab('tasks');
                     }}
-                    className="text-zinc-600 hover:text-zinc-900 font-mono text-[11px] hover:underline flex items-center gap-1 group"
+                    className="text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 font-mono text-[11px] hover:underline flex items-center gap-1 group"
                     title="Показать все задачи этого сотрудника на доске"
                   >
                     <span>Задачи:</span>
-                    <strong className="text-zinc-900">{doneTasks.length}</strong>
+                    <strong className="text-zinc-900 dark:text-zinc-100">{doneTasks.length}</strong>
                     <span>/ {memberTasks.length}</span>
-                    <span className="text-zinc-400 group-hover:text-zinc-900">→</span>
+                    <span className="text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100">→</span>
                   </button>
 
                   {activeTeam.length > 1 && (
                     <button
                       onClick={() => deleteTeamMember(member.id)}
-                      className="text-zinc-400 hover:text-red-600 p-1"
+                      className="text-zinc-400 hover:text-red-600 dark:hover:text-red-400 p-1"
                       title="Удалить сотрудника"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -322,7 +322,7 @@ export const TeamContractorsView: React.FC = () => {
       {activeSection === 'contractors' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {activeContractors.length === 0 ? (
-            <div className="col-span-2 py-12 text-center text-xs text-zinc-400 border border-dashed border-zinc-200 rounded-lg">
+            <div className="col-span-2 py-12 text-center text-xs text-zinc-400 dark:text-zinc-500 border border-dashed border-zinc-200 dark:border-zinc-800 rounded-lg">
               Подрядчики еще не добавлены. Наймите их из Каталога площадок или добавьте вручную.
             </div>
           ) : (
@@ -334,10 +334,10 @@ export const TeamContractorsView: React.FC = () => {
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-2">
                     <div>
-                      <h4 className="text-sm font-semibold text-zinc-900">
+                      <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                         {cont.companyName}
                       </h4>
-                      <p className="text-xs text-zinc-500 mt-0.5">
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                         {cont.serviceType}
                       </p>
                     </div>
@@ -346,7 +346,7 @@ export const TeamContractorsView: React.FC = () => {
                       aria-label="Статус договора с подрядчиком"
                       value={cont.status}
                       onChange={e => updateContractor({ ...cont, status: e.target.value as ContractorStatus })}
-                      className="h-7 px-2 rounded border border-zinc-200 bg-white text-xs font-medium focus:outline-none focus:border-zinc-900 cursor-pointer"
+                      className="h-7 px-2 rounded border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400 cursor-pointer"
                     >
                       <option value="negotiation">Переговоры</option>
                       <option value="contracted">Договор подписан</option>
@@ -355,31 +355,31 @@ export const TeamContractorsView: React.FC = () => {
                     </select>
                   </div>
 
-                  <div className="space-y-1.5 text-xs text-zinc-600 bg-zinc-50 p-2.5 rounded border border-zinc-200 mb-3">
+                  <div className="space-y-1.5 text-xs text-zinc-600 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-900/60 p-2.5 rounded border border-zinc-200 dark:border-zinc-800 mb-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-zinc-400 text-[11px]">Контактное лицо:</span>
-                      <span className="font-medium">{cont.contactPerson}</span>
+                      <span className="text-zinc-400 dark:text-zinc-500 text-[11px]">Контактное лицо:</span>
+                      <span className="font-medium text-zinc-900 dark:text-zinc-100">{cont.contactPerson}</span>
                     </div>
                     <div className="flex items-center justify-between font-mono text-[11px]">
-                      <span className="text-zinc-400">Телефон:</span>
+                      <span className="text-zinc-400 dark:text-zinc-500">Телефон:</span>
                       <span>{cont.phone}</span>
                     </div>
                     <div className="flex items-center justify-between font-mono text-[11px]">
-                      <span className="text-zinc-400">E-mail:</span>
+                      <span className="text-zinc-400 dark:text-zinc-500">E-mail:</span>
                       <span>{cont.email}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="pt-2.5 border-t border-zinc-100 flex items-center justify-between text-xs">
+                <div className="pt-2.5 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between text-xs">
                   <div className="font-mono">
-                    <span className="text-zinc-400 text-[11px] mr-1">Сумма:</span>
-                    <strong className="text-sm text-zinc-900 font-semibold">{formatCurrency(cont.cost)}</strong>
+                    <span className="text-zinc-400 dark:text-zinc-500 text-[11px] mr-1">Сумма:</span>
+                    <strong className="text-sm text-zinc-900 dark:text-zinc-100 font-semibold">{formatCurrency(cont.cost)}</strong>
                   </div>
 
                   <button
                     onClick={() => deleteContractor(cont.id)}
-                    className="text-zinc-400 hover:text-red-600 p-1"
+                    className="text-zinc-400 hover:text-red-600 dark:hover:text-red-400 p-1"
                     title="Удалить подрядчика"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -419,7 +419,7 @@ export const TeamContractorsView: React.FC = () => {
                 <option value="contractor">Подрядчики и сервисы</option>
               </select>
 
-              <div className="flex items-center gap-1.5 text-xs text-zinc-600">
+              <div className="flex items-center gap-1.5 text-xs text-zinc-600 dark:text-zinc-400">
                 <span>Макс. бюджет:</span>
                 <select
                   aria-label="Максимальный бюджет"
@@ -459,54 +459,54 @@ export const TeamContractorsView: React.FC = () => {
                 <div
                   key={item.id}
                   className={`card-surface p-4 flex flex-col justify-between transition-all ${
-                    isCompared ? 'ring-2 ring-zinc-900 border-zinc-900' : ''
+                    isCompared ? 'ring-2 ring-zinc-900 dark:ring-zinc-100 border-zinc-900 dark:border-zinc-100' : ''
                   }`}
                 >
                   <div>
                     {/* Header: Category Badge & Compare Checkbox */}
                     <div className="flex items-start justify-between gap-2 mb-2">
-                      <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-zinc-100 text-zinc-700 border border-zinc-200 font-medium">
+                      <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 font-medium">
                         {item.category === 'venue' ? 'Площадка' : 'Подрядчик'} • {item.serviceType}
                       </span>
 
-                      <label className="flex items-center gap-1.5 cursor-pointer text-xs text-zinc-600 select-none">
+                      <label className="flex items-center gap-1.5 cursor-pointer text-xs text-zinc-600 dark:text-zinc-400 select-none">
                         <input
                           type="checkbox"
                           checked={isCompared}
                           onChange={() => toggleCompare(item.id)}
-                          className="rounded border-zinc-300 text-zinc-900 w-3.5 h-3.5"
+                          className="rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 w-3.5 h-3.5"
                         />
                         <span className="text-[11px]">Сравнить</span>
                       </label>
                     </div>
 
-                    <h4 className="text-sm font-semibold text-zinc-900">
+                    <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                       {item.title}
                     </h4>
 
-                    <div className="flex items-center gap-2 mt-1 mb-2 text-xs text-zinc-500">
-                      <span className="flex items-center gap-1 text-amber-600 font-medium font-mono text-[11px]">
+                    <div className="flex items-center gap-2 mt-1 mb-2 text-xs text-zinc-500 dark:text-zinc-400">
+                      <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium font-mono text-[11px]">
                         <Star className="w-3 h-3 fill-amber-500 text-amber-500" />
                         {item.rating}
                       </span>
-                      <span className="text-zinc-400">({item.reviewsCount} отзывов)</span>
+                      <span className="text-zinc-400 dark:text-zinc-500">({item.reviewsCount} отзывов)</span>
                       <span>•</span>
                       <span>{item.city}</span>
                     </div>
 
-                    <p className="text-xs text-zinc-600 leading-relaxed mb-3">
+                    <p className="text-xs text-zinc-600 dark:text-zinc-300 leading-relaxed mb-3">
                       {item.description}
                     </p>
 
                     {/* Characteristics / Tags */}
                     <div className="flex flex-wrap gap-1.5 mb-3">
                       {item.capacity && (
-                        <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-zinc-100 text-zinc-800 border border-zinc-200">
+                        <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700">
                           до {item.capacity} гостей
                         </span>
                       )}
                       {item.tags.map(t => (
-                        <span key={t} className="text-[11px] px-2 py-0.5 rounded bg-zinc-50 text-zinc-600 border border-zinc-200">
+                        <span key={t} className="text-[11px] px-2 py-0.5 rounded bg-zinc-50 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800">
                           {t}
                         </span>
                       ))}
@@ -514,16 +514,16 @@ export const TeamContractorsView: React.FC = () => {
                   </div>
 
                   {/* Price & Action */}
-                  <div className="pt-3 border-t border-zinc-100 flex items-center justify-between gap-2">
+                  <div className="pt-3 border-t border-zinc-100 dark:border-zinc-800 flex items-center justify-between gap-2">
                     <div>
-                      <span className="text-[10px] uppercase text-zinc-400 block font-medium">Стоимость</span>
-                      <strong className="text-sm font-semibold text-zinc-900 font-mono">
+                      <span className="text-[10px] uppercase text-zinc-400 dark:text-zinc-500 block font-medium">Стоимость</span>
+                      <strong className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 font-mono">
                         {formatCurrency(item.price)}
                       </strong>
                     </div>
 
                     {isAlreadyContracted ? (
-                      <span className="text-xs font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md flex items-center gap-1 font-medium">
+                      <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 px-2.5 py-1 rounded-md flex items-center gap-1 font-medium">
                         <Check className="w-3 h-3" />
                         В проекте
                       </span>
@@ -546,20 +546,20 @@ export const TeamContractorsView: React.FC = () => {
 
       {/* Comparison Modal */}
       {isCompareModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/50 animate-fade-in">
-          <div className="bg-white border border-zinc-200 rounded-lg w-full max-w-4xl shadow-xl overflow-hidden flex flex-col max-h-[85vh]">
-            <div className="px-5 py-3.5 border-b border-zinc-200 flex items-center justify-between bg-zinc-50/80">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white dark:bg-[#141418] border border-zinc-200 dark:border-zinc-800 rounded-lg w-full max-w-4xl shadow-xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="px-5 py-3.5 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/80 dark:bg-zinc-900/70">
               <div>
-                <h3 className="text-sm font-semibold text-zinc-900">
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                   Сравнение площадок и подрядчиков
                 </h3>
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
                   Сопоставление параметров, вместимости, рейтингов и сметной стоимости
                 </p>
               </div>
               <button
                 onClick={() => setIsCompareModalOpen(false)}
-                className="text-zinc-400 hover:text-zinc-700 p-1"
+                className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-1"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -568,21 +568,21 @@ export const TeamContractorsView: React.FC = () => {
             <div className="p-5 overflow-x-auto flex-1">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-zinc-200">
-                    <th className="py-2 px-3 text-zinc-400 uppercase text-[10px] font-medium w-36">Параметр</th>
+                  <tr className="border-b border-zinc-200 dark:border-zinc-800">
+                    <th className="py-2 px-3 text-zinc-400 dark:text-zinc-500 uppercase text-[10px] font-medium w-36">Параметр</th>
                     {comparedItems.map(item => (
-                      <th key={item.id} className="py-2 px-3 font-semibold text-zinc-900 text-sm">
+                      <th key={item.id} className="py-2 px-3 font-semibold text-zinc-900 dark:text-zinc-100 text-sm">
                         {item.title}
                       </th>
                     ))}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-200/80">
+                <tbody className="divide-y divide-zinc-200/80 dark:divide-zinc-800/70 text-zinc-800 dark:text-zinc-200">
                   <tr>
-                    <td className="py-2.5 px-3 text-zinc-500 font-medium">Тип и категория</td>
+                    <td className="py-2.5 px-3 text-zinc-500 dark:text-zinc-400 font-medium">Тип и категория</td>
                     {comparedItems.map(item => (
                       <td key={item.id} className="py-2.5 px-3">
-                        <span className="px-1.5 py-0.5 rounded bg-zinc-100 font-mono text-[11px] border border-zinc-200">
+                        <span className="px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 font-mono text-[11px] border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300">
                           {item.category === 'venue' ? 'Площадка' : 'Подрядчик'} • {item.serviceType}
                         </span>
                       </td>
@@ -590,51 +590,51 @@ export const TeamContractorsView: React.FC = () => {
                   </tr>
 
                   <tr>
-                    <td className="py-2.5 px-3 text-zinc-500 font-medium">Стоимость</td>
+                    <td className="py-2.5 px-3 text-zinc-500 dark:text-zinc-400 font-medium">Стоимость</td>
                     {comparedItems.map(item => (
-                      <td key={item.id} className="py-2.5 px-3 font-mono font-semibold text-zinc-900 text-sm">
+                      <td key={item.id} className="py-2.5 px-3 font-mono font-semibold text-zinc-900 dark:text-zinc-100 text-sm">
                         {formatCurrency(item.price)}
                       </td>
                     ))}
                   </tr>
 
                   <tr>
-                    <td className="py-2.5 px-3 text-zinc-500 font-medium">Вместимость</td>
+                    <td className="py-2.5 px-3 text-zinc-500 dark:text-zinc-400 font-medium">Вместимость</td>
                     {comparedItems.map(item => (
-                      <td key={item.id} className="py-2.5 px-3 font-mono">
+                      <td key={item.id} className="py-2.5 px-3 font-mono text-zinc-800 dark:text-zinc-200">
                         {item.capacity ? `${item.capacity} человек` : '—'}
                       </td>
                     ))}
                   </tr>
 
                   <tr>
-                    <td className="py-2.5 px-3 text-zinc-500 font-medium">Рейтинг и отзывы</td>
+                    <td className="py-2.5 px-3 text-zinc-500 dark:text-zinc-400 font-medium">Рейтинг и отзывы</td>
                     {comparedItems.map(item => (
                       <td key={item.id} className="py-2.5 px-3">
-                        <span className="text-amber-600 font-semibold font-mono">
+                        <span className="text-amber-600 dark:text-amber-400 font-semibold font-mono">
                           ★ {item.rating}
                         </span>{' '}
-                        <span className="text-zinc-400">({item.reviewsCount} отзывов)</span>
+                        <span className="text-zinc-400 dark:text-zinc-500">({item.reviewsCount} отзывов)</span>
                       </td>
                     ))}
                   </tr>
 
                   <tr>
-                    <td className="py-2.5 px-3 text-zinc-500 font-medium">Город / Формат</td>
+                    <td className="py-2.5 px-3 text-zinc-500 dark:text-zinc-400 font-medium">Город / Формат</td>
                     {comparedItems.map(item => (
-                      <td key={item.id} className="py-2.5 px-3">
+                      <td key={item.id} className="py-2.5 px-3 text-zinc-800 dark:text-zinc-200">
                         {item.city} ({item.format})
                       </td>
                     ))}
                   </tr>
 
                   <tr>
-                    <td className="py-2.5 px-3 text-zinc-500 font-medium">Особенности & Теги</td>
+                    <td className="py-2.5 px-3 text-zinc-500 dark:text-zinc-400 font-medium">Особенности & Теги</td>
                     {comparedItems.map(item => (
                       <td key={item.id} className="py-2.5 px-3">
                         <div className="flex flex-wrap gap-1">
                           {item.tags.map(t => (
-                            <span key={t} className="text-[10px] px-1.5 py-0.2 rounded bg-zinc-100 text-zinc-700">
+                            <span key={t} className="text-[10px] px-1.5 py-0.2 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
                               {t}
                             </span>
                           ))}
@@ -644,9 +644,9 @@ export const TeamContractorsView: React.FC = () => {
                   </tr>
 
                   <tr>
-                    <td className="py-2.5 px-3 text-zinc-500 font-medium">Контакты</td>
+                    <td className="py-2.5 px-3 text-zinc-500 dark:text-zinc-400 font-medium">Контакты</td>
                     {comparedItems.map(item => (
-                      <td key={item.id} className="py-2.5 px-3 font-mono text-[11px] text-zinc-600">
+                      <td key={item.id} className="py-2.5 px-3 font-mono text-[11px] text-zinc-600 dark:text-zinc-400">
                         <div>{item.contactPerson}</div>
                         <div>{item.phone}</div>
                         <div>{item.email}</div>
@@ -655,13 +655,13 @@ export const TeamContractorsView: React.FC = () => {
                   </tr>
 
                   <tr>
-                    <td className="py-3 px-3 text-zinc-500 font-medium">Решение</td>
+                    <td className="py-3 px-3 text-zinc-500 dark:text-zinc-400 font-medium">Решение</td>
                     {comparedItems.map(item => {
                       const isAlreadyContracted = activeContractors.some(c => c.companyName === item.title);
                       return (
                         <td key={item.id} className="py-3 px-3">
                           {isAlreadyContracted ? (
-                            <span className="text-xs font-mono text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded inline-flex items-center gap-1 font-medium">
+                            <span className="text-xs font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 px-2 py-1 rounded inline-flex items-center gap-1 font-medium">
                               <Check className="w-3 h-3" />
                               В проекте
                             </span>
@@ -684,11 +684,11 @@ export const TeamContractorsView: React.FC = () => {
               </table>
             </div>
 
-            <div className="px-5 py-3 border-t border-zinc-200 flex justify-between items-center bg-zinc-50/50">
+            <div className="px-5 py-3 border-t border-zinc-200 dark:border-zinc-800 flex justify-between items-center bg-zinc-50/50 dark:bg-zinc-900/50">
               <button
                 type="button"
                 onClick={() => setCompareIds([])}
-                className="text-xs text-zinc-500 hover:text-zinc-800"
+                className="text-xs text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
               >
                 Очистить выбор
               </button>
@@ -706,18 +706,18 @@ export const TeamContractorsView: React.FC = () => {
 
       {/* Modal: Add Team Member */}
       {isTeamModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40">
-          <div className="bg-white border border-zinc-200 rounded-lg w-full max-w-md shadow-md overflow-hidden flex flex-col">
-            <div className="px-5 py-3.5 border-b border-zinc-200 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-zinc-900">Добавить участника команды</h3>
-              <button onClick={() => setIsTeamModalOpen(false)} className="text-zinc-400 hover:text-zinc-700 p-1">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/60 backdrop-blur-xs">
+          <div className="bg-white dark:bg-[#141418] border border-zinc-200 dark:border-zinc-800 rounded-lg w-full max-w-md shadow-md overflow-hidden flex flex-col text-zinc-900 dark:text-zinc-100">
+            <div className="px-5 py-3.5 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/70 dark:bg-zinc-900/70">
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Добавить участника команды</h3>
+              <button onClick={() => setIsTeamModalOpen(false)} className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-1">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleTeamSubmit} className="p-5 space-y-3">
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">ФИО сотрудника *</label>
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">ФИО сотрудника *</label>
                 <input
                   type="text"
                   required
@@ -729,7 +729,7 @@ export const TeamContractorsView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">Должность / Роль *</label>
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Должность / Роль *</label>
                 <input
                   type="text"
                   required
@@ -741,7 +741,7 @@ export const TeamContractorsView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">Зона ответственности</label>
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Зона ответственности</label>
                 <input
                   type="text"
                   placeholder="Например: Сцена, свет и трансляция"
@@ -753,7 +753,7 @@ export const TeamContractorsView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">E-mail</label>
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">E-mail</label>
                   <input
                     type="email"
                     placeholder="mail@event.ru"
@@ -763,7 +763,7 @@ export const TeamContractorsView: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">Телефон</label>
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Телефон</label>
                   <input
                     type="tel"
                     placeholder="+7 999 000-00-00"
@@ -774,7 +774,7 @@ export const TeamContractorsView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-zinc-200 flex justify-end gap-2">
+              <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-2">
                 <button type="button" onClick={() => setIsTeamModalOpen(false)} className="btn-secondary">
                   Отмена
                 </button>
@@ -789,18 +789,18 @@ export const TeamContractorsView: React.FC = () => {
 
       {/* Modal: Add Contractor */}
       {isContractorModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40">
-          <div className="bg-white border border-zinc-200 rounded-lg w-full max-w-md shadow-md overflow-hidden flex flex-col">
-            <div className="px-5 py-3.5 border-b border-zinc-200 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-zinc-900">Добавить подрядчика</h3>
-              <button onClick={() => setIsContractorModalOpen(false)} className="text-zinc-400 hover:text-zinc-700 p-1">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/60 backdrop-blur-xs">
+          <div className="bg-white dark:bg-[#141418] border border-zinc-200 dark:border-zinc-800 rounded-lg w-full max-w-md shadow-md overflow-hidden flex flex-col text-zinc-900 dark:text-zinc-100">
+            <div className="px-5 py-3.5 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/70 dark:bg-zinc-900/70">
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Добавить подрядчика</h3>
+              <button onClick={() => setIsContractorModalOpen(false)} className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-1">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={handleContractorSubmit} className="p-5 space-y-3">
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">Компания / Подрядчик *</label>
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Компания / Подрядчик *</label>
                 <input
                   type="text"
                   required
@@ -813,7 +813,7 @@ export const TeamContractorsView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">Тип услуги *</label>
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Тип услуги *</label>
                   <input
                     type="text"
                     required
@@ -825,7 +825,7 @@ export const TeamContractorsView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">Стоимость (₽)</label>
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Стоимость (₽)</label>
                   <input
                     type="number"
                     step="10000"
@@ -837,7 +837,7 @@ export const TeamContractorsView: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">Контактное лицо</label>
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Контактное лицо</label>
                 <input
                   type="text"
                   placeholder="Имя представителя"
@@ -849,7 +849,7 @@ export const TeamContractorsView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">Телефон</label>
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">Телефон</label>
                   <input
                     type="tel"
                     placeholder="+7 999 000-00-00"
@@ -860,7 +860,7 @@ export const TeamContractorsView: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">E-mail</label>
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">E-mail</label>
                   <input
                     type="email"
                     placeholder="info@company.ru"
@@ -871,7 +871,7 @@ export const TeamContractorsView: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-zinc-200 flex justify-end gap-2">
+              <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-2">
                 <button type="button" onClick={() => setIsContractorModalOpen(false)} className="btn-secondary">
                   Отмена
                 </button>

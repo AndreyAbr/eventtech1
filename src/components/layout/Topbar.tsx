@@ -13,7 +13,9 @@ import {
   Calendar,
   Wallet,
   Users,
-  Check
+  Check,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useEventContext } from '../../context/EventContext';
 import { formatDate, formatCurrency } from '../../utils/analytics';
@@ -40,6 +42,8 @@ export const Topbar: React.FC = () => {
     metrics,
     currentUserRole,
     setCurrentUserRole,
+    theme,
+    toggleTheme,
     resetDemoData,
     notifications,
     dismissNotification,
@@ -119,13 +123,13 @@ export const Topbar: React.FC = () => {
 
   return (
     <>
-      <header className="h-12 bg-white border-b border-zinc-200 px-4 md:px-6 flex items-center justify-between sticky top-0 z-30 select-none">
+      <header className="h-12 bg-white dark:bg-[#0C0C0E] border-b border-zinc-200 dark:border-zinc-800/80 px-4 md:px-6 flex items-center justify-between sticky top-0 z-30 select-none">
         {/* Left: Mobile Toggle & Breadcrumbs */}
         <div className="flex items-center gap-2 min-w-0">
           {/* Mobile hamburger menu toggle */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="md:hidden p-1.5 -ml-1.5 mr-0.5 rounded text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 transition-colors"
+            className="md:hidden p-1.5 -ml-1.5 mr-0.5 rounded text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 transition-colors"
             aria-label="Открыть главное меню"
           >
             <Menu className="w-4 h-4" />
@@ -134,28 +138,28 @@ export const Topbar: React.FC = () => {
           {/* Breadcrumb Segment 1: "Мероприятия" (opens project switcher) */}
           <button
             onClick={() => setIsEventSwitcherOpen(true)}
-            className="text-xs font-medium text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 px-1.5 py-0.5 rounded transition-colors cursor-pointer flex items-center gap-1 shrink-0"
+            className="text-xs font-medium text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800/60 px-1.5 py-0.5 rounded transition-colors cursor-pointer flex items-center gap-1 shrink-0"
             title="Переключить проект или открыть список мероприятий"
           >
             <span>Мероприятия</span>
             <ChevronDown className="w-3 h-3 text-zinc-400" />
           </button>
 
-          <ChevronRight className="w-3.5 h-3.5 text-zinc-300 shrink-0" />
+          <ChevronRight className="w-3.5 h-3.5 text-zinc-300 dark:text-zinc-700 shrink-0" />
 
           {/* Breadcrumb Segment 2: Active event title (navigates to settings) */}
           <button
             onClick={() => setActiveTab('settings')}
-            className="text-xs font-medium text-zinc-700 hover:text-zinc-900 hover:underline truncate max-w-[150px] sm:max-w-[240px] text-left cursor-pointer"
+            className="text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline truncate max-w-[180px] lg:max-w-[260px] text-left cursor-pointer"
             title="Перейти в параметры и паспорт мероприятия"
           >
             {activeEvent?.title || 'Без названия'}
           </button>
 
-          <ChevronRight className="w-3.5 h-3.5 text-zinc-300 shrink-0" />
+          <ChevronRight className="w-3.5 h-3.5 text-zinc-300 dark:text-zinc-700 shrink-0" />
 
           {/* Breadcrumb Segment 3: Current Tab */}
-          <span className="text-xs font-semibold text-zinc-900 shrink-0">
+          <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 shrink-0">
             {TAB_NAMES[activeTab] || 'Раздел'}
           </span>
 
@@ -163,46 +167,46 @@ export const Topbar: React.FC = () => {
           {activeEvent && (
             <button
               onClick={() => setActiveTab('calendar')}
-              className="hidden lg:flex items-center gap-1.5 ml-2 font-mono text-[11px] text-zinc-400 hover:text-zinc-700 cursor-pointer"
+              className="hidden lg:flex items-center gap-1.5 ml-2 font-mono text-[11px] text-zinc-400 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 cursor-pointer whitespace-nowrap shrink-0"
               title="Открыть мероприятие в календаре"
             >
               <span>•</span>
-              <span className="px-1.5 py-0.2 rounded bg-zinc-100 text-zinc-600 border border-zinc-200 hover:bg-zinc-200 transition-colors">
+              <span className="px-1.5 py-0.2 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors whitespace-nowrap">
                 {activeEvent.type}
               </span>
               <span>•</span>
-              <span className="hover:underline">{formatDate(activeEvent.startDate)}</span>
+              <span className="hover:underline whitespace-nowrap">{formatDate(activeEvent.startDate)}</span>
             </button>
           )}
         </div>
 
-        {/* Right: Readiness, Role Switcher & Reset */}
-        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+        {/* Right: Readiness, Role Switcher, Theme Toggle & Reset */}
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 whitespace-nowrap">
           {/* Readiness Meter (navigates to tasks) */}
           <button
             onClick={() => setActiveTab('tasks')}
-            className="hidden md:flex items-center gap-2 pr-3 border-r border-zinc-200 hover:bg-zinc-50 px-2 py-1 rounded transition-colors cursor-pointer text-left"
+            className="hidden md:flex items-center gap-2 pr-3 border-r border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 px-2 py-1 rounded transition-colors cursor-pointer text-left shrink-0 whitespace-nowrap"
             title="Перейти к плану задач"
           >
-            <span className="text-xs font-mono text-zinc-600 tabular-nums">
+            <span className="text-xs font-mono text-zinc-600 dark:text-zinc-400 tabular-nums whitespace-nowrap">
               Готовность {metrics.readinessPercent}%
             </span>
-            <div className="w-16 h-1.5 bg-zinc-100 rounded-full overflow-hidden border border-zinc-200">
+            <div className="w-16 h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-700">
               <div
-                className="h-full bg-zinc-900 transition-all duration-300"
+                className="h-full bg-zinc-900 dark:bg-zinc-100 transition-all duration-300"
                 style={{ width: `${metrics.readinessPercent}%` }}
               />
             </div>
           </button>
 
           {/* Segmented Role Switcher */}
-          <div className="flex items-center bg-zinc-100 p-0.5 rounded-md border border-zinc-200/80">
+          <div className="flex items-center bg-zinc-100 dark:bg-zinc-800/80 p-0.5 rounded-md border border-zinc-200/80 dark:border-zinc-700/80 shrink-0">
             <button
               onClick={() => handleRoleChange('admin')}
               className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${
                 currentUserRole === 'admin'
-                  ? 'bg-white text-zinc-900 shadow-sm'
-                  : 'text-zinc-600 hover:text-zinc-900'
+                  ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}
             >
               Админ
@@ -211,8 +215,8 @@ export const Topbar: React.FC = () => {
               onClick={() => handleRoleChange('team')}
               className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${
                 currentUserRole === 'team'
-                  ? 'bg-white text-zinc-900 shadow-sm'
-                  : 'text-zinc-600 hover:text-zinc-900'
+                  ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}
             >
               Команда
@@ -221,18 +225,32 @@ export const Topbar: React.FC = () => {
               onClick={() => handleRoleChange('guest')}
               className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${
                 currentUserRole === 'guest'
-                  ? 'bg-white text-zinc-900 shadow-sm'
-                  : 'text-zinc-600 hover:text-zinc-900'
+                  ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
               }`}
             >
               Гость
             </button>
           </div>
 
+          {/* Theme Toggle Button (Light / Dark) */}
+          <button
+            onClick={toggleTheme}
+            className="btn-secondary w-8 h-7 px-0 flex items-center justify-center text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 shrink-0"
+            title="Переключить тему (Светлая / Темная)"
+            aria-label="Переключить тему"
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-3.5 h-3.5 text-amber-400" />
+            ) : (
+              <Moon className="w-3.5 h-3.5 text-zinc-600" />
+            )}
+          </button>
+
           {/* Reset Demo Button */}
           <button
             onClick={resetDemoData}
-            className="btn-secondary h-7 px-2.5 text-xs text-zinc-600 hover:text-zinc-900"
+            className="btn-secondary h-7 px-2.5 text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 shrink-0"
             title="Сбросить к исходным демонстрационным данным"
           >
             <RotateCcw className="w-3.5 h-3.5 text-zinc-400" />
@@ -243,20 +261,20 @@ export const Topbar: React.FC = () => {
 
       {/* MODAL: Project Switcher ("Все мероприятия") */}
       {isEventSwitcherOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40 animate-fade-in">
-          <div className="bg-white border border-zinc-200 rounded-lg w-full max-w-2xl shadow-xl overflow-hidden flex flex-col max-h-[85vh]">
-            <div className="px-5 py-3.5 border-b border-zinc-200 flex items-center justify-between bg-zinc-50/70">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/40 dark:bg-black/60 animate-fade-in">
+          <div className="bg-white dark:bg-[#141418] border border-zinc-200 dark:border-zinc-800 rounded-lg w-full max-w-2xl shadow-xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="px-5 py-3.5 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/70 dark:bg-zinc-900/60">
               <div>
-                <h3 className="text-sm font-semibold text-zinc-900">
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                   Все мероприятия (Переключатель проектов)
                 </h3>
-                <p className="text-xs text-zinc-500">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400">
                   Выберите активное событие для работы или создайте новое
                 </p>
               </div>
               <button
                 onClick={() => setIsEventSwitcherOpen(false)}
-                className="text-zinc-400 hover:text-zinc-700 p-1 rounded-md"
+                className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-1 rounded-md"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -274,39 +292,39 @@ export const Topbar: React.FC = () => {
                     }}
                     className={`p-3.5 rounded-lg border transition-all cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                       isCurrent
-                        ? 'border-zinc-900 bg-zinc-50/90 shadow-xs ring-1 ring-zinc-900'
-                        : 'border-zinc-200 bg-white hover:border-zinc-300 hover:bg-zinc-50/50'
+                        ? 'border-zinc-900 dark:border-zinc-500 bg-zinc-50/90 dark:bg-zinc-800/40 shadow-xs ring-1 ring-zinc-900 dark:ring-zinc-500'
+                        : 'border-zinc-200 dark:border-zinc-800 bg-white dark:bg-[#18181D] hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30'
                     }`}
                   >
                     <div className="space-y-1.5 min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-mono px-1.5 py-0.2 rounded bg-zinc-100 text-zinc-700 border border-zinc-200 font-medium">
+                        <span className="text-xs font-mono px-1.5 py-0.2 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 font-medium">
                           {evt.type}
                         </span>
-                        <h4 className="text-sm font-semibold text-zinc-900 truncate">
+                        <h4 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
                           {evt.title}
                         </h4>
                         {isCurrent && (
-                          <span className="text-[10px] font-mono font-medium px-1.5 py-0.2 rounded bg-zinc-900 text-white flex items-center gap-1">
+                          <span className="text-[10px] font-mono font-medium px-1.5 py-0.2 rounded bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 flex items-center gap-1">
                             <Check className="w-2.5 h-2.5" />
                             Активный
                           </span>
                         )}
                       </div>
 
-                      <div className="flex items-center gap-3 text-xs text-zinc-500 flex-wrap font-mono text-[11px]">
+                      <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400 flex-wrap font-mono text-[11px]">
                         <span className="flex items-center gap-1">
-                          <Calendar className="w-3 h-3 text-zinc-400" />
+                          <Calendar className="w-3 h-3 text-zinc-400 dark:text-zinc-500" />
                           {formatDate(evt.startDate)}
                         </span>
                         <span>•</span>
                         <span className="flex items-center gap-1">
-                          <Wallet className="w-3 h-3 text-zinc-400" />
+                          <Wallet className="w-3 h-3 text-zinc-400 dark:text-zinc-500" />
                           {formatCurrency(evt.totalBudgetLimit)}
                         </span>
                         <span>•</span>
                         <span className="flex items-center gap-1">
-                          <Users className="w-3 h-3 text-zinc-400" />
+                          <Users className="w-3 h-3 text-zinc-400 dark:text-zinc-500" />
                           {evt.plannedHeadcount} чел.
                         </span>
                         {evt.location && (
@@ -327,7 +345,7 @@ export const Topbar: React.FC = () => {
                         }}
                         className={`text-xs px-3 py-1 rounded font-medium transition-colors ${
                           isCurrent
-                            ? 'bg-zinc-900 text-white hover:bg-zinc-800'
+                            ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200'
                             : 'btn-secondary'
                         }`}
                       >
@@ -339,8 +357,8 @@ export const Topbar: React.FC = () => {
               })}
             </div>
 
-            <div className="px-5 py-3 border-t border-zinc-200 flex items-center justify-between bg-zinc-50/50">
-              <span className="text-xs text-zinc-500 font-mono">
+            <div className="px-5 py-3 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50/50 dark:bg-zinc-900/50">
+              <span className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
                 Всего событий: {events.length}
               </span>
 
@@ -361,15 +379,15 @@ export const Topbar: React.FC = () => {
 
       {/* MODAL: Create New Event Form (invoked from Switcher) */}
       {isNewEventModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/50">
-          <div className="bg-white border border-zinc-200 rounded-lg w-full max-w-lg shadow-xl overflow-hidden flex flex-col">
-            <div className="px-5 py-3.5 border-b border-zinc-200 flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-zinc-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-900/50 dark:bg-black/60">
+          <div className="bg-white dark:bg-[#141418] border border-zinc-200 dark:border-zinc-800 rounded-lg w-full max-w-lg shadow-xl overflow-hidden flex flex-col">
+            <div className="px-5 py-3.5 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                 Новое мероприятие
               </h3>
               <button
                 onClick={() => setIsNewEventModalOpen(false)}
-                className="text-zinc-400 hover:text-zinc-700 p-1"
+                className="text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 p-1"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -377,7 +395,7 @@ export const Topbar: React.FC = () => {
 
             <form onSubmit={handleCreateNewEventSubmit} className="p-5 space-y-3">
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                   Название мероприятия <span className="text-red-500">*</span>
                 </label>
                 <input
@@ -392,7 +410,7 @@ export const Topbar: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                     Формат / Тип
                   </label>
                   <select
@@ -410,7 +428,7 @@ export const Topbar: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                     Планируемые участники
                   </label>
                   <input
@@ -425,7 +443,7 @@ export const Topbar: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                     Дата начала
                   </label>
                   <input
@@ -438,7 +456,7 @@ export const Topbar: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-zinc-700 mb-1">
+                  <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                     Лимит бюджета (₽)
                   </label>
                   <input
@@ -452,7 +470,7 @@ export const Topbar: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-zinc-700 mb-1">
+                <label className="block text-xs font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                   Место проведения / Площадка
                 </label>
                 <input
@@ -464,7 +482,7 @@ export const Topbar: React.FC = () => {
                 />
               </div>
 
-              <div className="pt-3 border-t border-zinc-200 flex justify-end gap-2">
+              <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsNewEventModalOpen(false)}
