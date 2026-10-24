@@ -13,7 +13,6 @@ import {
   X,
   QrCode,
   Radio,
-  Sparkles,
   History,
   Check
 } from 'lucide-react';

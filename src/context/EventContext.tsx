@@ -26,11 +26,13 @@ import {
   INITIAL_SURVEYS,
   INITIAL_KANBAN_STAGES,
   INITIAL_MARKETPLACE_ITEMS,
-  INITIAL_BROADCASTS
+  INITIAL_BROADCASTS,
+  INITIAL_USERS
 } from '../data/seedData';
+import { UserProfile } from '../types/event';
 import { calculateEventMetrics, EventMetrics } from '../utils/analytics';
 
-const STORAGE_KEY = 'eventtech_store_v4';
+const STORAGE_KEY = 'eventtech_store_v5';
 
 interface StoredData {
   events: EventEntity[];
@@ -44,6 +46,8 @@ interface StoredData {
   marketplaceItems: MarketplaceItem[];
   broadcasts: BroadcastMessage[];
   activeEventId: string;
+  users: UserProfile[];
+  currentUserId: string | null;
 }
 
 interface EventContextType {
@@ -64,6 +68,23 @@ interface EventContextType {
   theme: 'light' | 'dark';
   toggleTheme: () => void;
   notifications: NotificationToast[];
+
+  // User profiles & Auth
+  users: UserProfile[];
+  currentUser: UserProfile | null;
+  dbMeta: {
+    dbEngine: string;
+    dbFile: string;
+    dbSizeKB: number;
+    totalRecords: number;
+    connected: boolean;
+  };
+  loginAsUser: (userId: string) => void;
+  loginByEmail: (email: string) => boolean;
+  registerUser: (data: Omit<UserProfile, 'id' | 'avatarInitials' | 'createdAt'>, autoLogin?: boolean) => UserProfile;
+  updateUserProfile: (userId: string, updates: Partial<UserProfile>) => void;
+  deleteUserProfile: (userId: string) => void;
+  logout: () => void;
 
   // Modals & Navigation state
   isMobileMenuOpen: boolean;
@@ -169,7 +190,9 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             kanbanStages: parsed.kanbanStages || INITIAL_KANBAN_STAGES,
             marketplaceItems: parsed.marketplaceItems || INITIAL_MARKETPLACE_ITEMS,
             broadcasts: parsed.broadcasts || INITIAL_BROADCASTS,
-            activeEventId: parsed.activeEventId || parsed.events[0]?.id || 'evt-1'
+            activeEventId: parsed.activeEventId || parsed.events[0]?.id || 'evt-1',
+            users: parsed.users && Array.isArray(parsed.users) && parsed.users.length > 0 ? parsed.users : INITIAL_USERS,
+            currentUserId: parsed.currentUserId !== undefined ? parsed.currentUserId : null
           };
         }
       }
@@ -188,7 +211,9 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       kanbanStages: INITIAL_KANBAN_STAGES,
       marketplaceItems: INITIAL_MARKETPLACE_ITEMS,
       broadcasts: INITIAL_BROADCASTS,
-      activeEventId: 'evt-1'
+      activeEventId: 'evt-1',
+      users: INITIAL_USERS,
+      currentUserId: null
     };
   };
 
@@ -206,8 +231,36 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [broadcasts, setBroadcasts] = useState<BroadcastMessage[]>(initial.broadcasts);
   const [activeEventId, setActiveEventId] = useState<string>(initial.activeEventId);
   const [activeTab, setActiveTab] = useState<ActiveTab>('dashboard');
-  const [currentUserRole, setCurrentUserRole] = useState<UserRole>('admin');
+  const [users, setUsers] = useState<UserProfile[]>(initial.users || INITIAL_USERS);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
+    if (initial.currentUserId) {
+      return (initial.users || INITIAL_USERS).find(u => u.id === initial.currentUserId) || null;
+    }
+    return null;
+  });
+  const [currentUserRole, setCurrentUserRole] = useState<UserRole>(() => {
+    if (initial.currentUserId) {
+      const u = (initial.users || INITIAL_USERS).find(usr => usr.id === initial.currentUserId);
+      if (u) return u.role;
+    }
+    return 'organizer';
+  });
   const [notifications, setNotifications] = useState<NotificationToast[]>([]);
+
+  // SQLite Database Metadata State
+  const [dbMeta, setDbMeta] = useState<{
+    dbEngine: string;
+    dbFile: string;
+    dbSizeKB: number;
+    totalRecords: number;
+    connected: boolean;
+  }>({
+    dbEngine: 'SQLite 3 (WAL)',
+    dbFile: 'data/eventtech.db',
+    dbSizeKB: 96,
+    totalRecords: 0,
+    connected: false
+  });
 
   // Dark Mode Theme State
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -250,7 +303,50 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     }
   }, [currentUserRole, activeTab]);
 
-  // Persist state to localStorage
+  // Load initial data from SQLite REST API (/api/state)
+  useEffect(() => {
+    let isMounted = true;
+    const loadDbState = async () => {
+      try {
+        const res = await fetch('/api/state');
+        if (res.ok) {
+          const data = await res.json();
+          if (isMounted && data) {
+            if (Array.isArray(data.events) && data.events.length > 0) {
+              setEvents(data.events);
+              setTasks(data.tasks || []);
+              setBudgetItems(data.budgetItems || []);
+              setGuests(data.guests || []);
+              setTeamMembers(data.teamMembers || []);
+              setContractors(data.contractors || []);
+              setSurveys(data.feedbacks || []);
+              setKanbanStages(data.kanbanStages || INITIAL_KANBAN_STAGES);
+              setBroadcasts(data.mailings || []);
+              setUsers(data.users || INITIAL_USERS);
+              if (data.meta) {
+                setDbMeta({
+                  dbEngine: data.meta.dbEngine || 'SQLite 3 (WAL)',
+                  dbFile: data.meta.dbFile || 'data/eventtech.db',
+                  dbSizeKB: data.meta.dbSizeKB || 0,
+                  totalRecords: data.meta.totalRecords || 0,
+                  connected: true
+                });
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('API /api/state not reachable, running with local seed', err);
+      }
+    };
+    loadDbState();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Persist state to SQLite (/api/sync) and localStorage backup
+  const hasLoadedRef = React.useRef(false);
   useEffect(() => {
     try {
       const dataToSave: StoredData = {
@@ -264,13 +360,61 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         kanbanStages,
         marketplaceItems,
         broadcasts,
-        activeEventId
+        activeEventId,
+        users,
+        currentUserId: currentUser?.id || null
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave));
     } catch (e) {
       console.error('Failed to save state to localStorage', e);
     }
-  }, [events, tasks, budgetItems, guests, teamMembers, contractors, surveys, kanbanStages, marketplaceItems, broadcasts, activeEventId]);
+
+    // Skip syncing on initial mount
+    if (!hasLoadedRef.current) {
+      hasLoadedRef.current = true;
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        const payload = {
+          events,
+          tasks,
+          budgetItems,
+          guests,
+          teamMembers,
+          contractors,
+          feedbacks: surveys,
+          kanbanStages,
+          mailings: broadcasts,
+          users
+        };
+
+        const res = await fetch('/api/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const updated = await res.json();
+          if (updated.meta) {
+            setDbMeta({
+              dbEngine: updated.meta.dbEngine || 'SQLite 3 (WAL)',
+              dbFile: updated.meta.dbFile || 'data/eventtech.db',
+              dbSizeKB: updated.meta.dbSizeKB || 0,
+              totalRecords: updated.meta.totalRecords || 0,
+              connected: true
+            });
+          }
+        }
+      } catch (err) {
+        console.warn('SQLite background sync warning', err);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [events, tasks, budgetItems, guests, teamMembers, contractors, surveys, kanbanStages, marketplaceItems, broadcasts, activeEventId, users, currentUser]);
 
   // Toast notification helper
   const notify = (message: string, type: 'success' | 'warning' | 'error' | 'info' = 'info') => {
@@ -292,11 +436,132 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setNotifications(prev => prev.filter(t => t.id !== id));
   };
 
-  // Reset to seed data
-  const resetDemoData = () => {
+  // Auth & Profile methods
+  const loginAsUser = (userId: string) => {
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      setCurrentUser(user);
+      setCurrentUserRole(user.role);
+      notify(`Вы вошли как ${user.name}`, 'success');
+    }
+  };
+
+  const loginByEmail = (email: string): boolean => {
+    const cleanEmail = email.trim().toLowerCase();
+    const user = users.find(u => u.email.trim().toLowerCase() === cleanEmail);
+    if (user) {
+      loginAsUser(user.id);
+      return true;
+    }
+    notify('Пользователь с таким email не найден в системе', 'warning');
+    return false;
+  };
+
+  const registerUser = (
+    data: Omit<UserProfile, 'id' | 'avatarInitials' | 'createdAt'>,
+    autoLogin: boolean = true
+  ): UserProfile => {
+    const parts = data.name.trim().split(/\s+/);
+    const initials = parts.length > 1
+      ? (parts[0][0] + parts[1][0]).toUpperCase()
+      : parts[0].slice(0, 2).toUpperCase();
+
+    const newUser: UserProfile = {
+      id: 'usr-' + Date.now(),
+      name: data.name.trim(),
+      email: data.email.trim(),
+      role: data.role,
+      position: data.position.trim(),
+      phone: data.phone?.trim() || undefined,
+      avatarInitials: initials || 'ПЛ',
+      createdAt: new Date().toISOString(),
+      isSystemDefault: false
+    };
+
+    setUsers(prev => [newUser, ...prev]);
+
+    if (autoLogin) {
+      setCurrentUser(newUser);
+      setCurrentUserRole(newUser.role);
+      notify(`Профиль ${newUser.name} успешно зарегистрирован!`, 'success');
+    } else {
+      notify(`Профиль ${newUser.name} успешно создан в системе`, 'success');
+    }
+
+    return newUser;
+  };
+
+  const updateUserProfile = (userId: string, updates: Partial<UserProfile>) => {
+    setUsers(prev => prev.map(u => (u.id === userId ? { ...u, ...updates } : u)));
+    if (currentUser?.id === userId) {
+      setCurrentUser(prev => (prev ? { ...prev, ...updates } : null));
+      if (updates.role) {
+        setCurrentUserRole(updates.role);
+      }
+    }
+    notify('Профиль пользователя обновлен', 'success');
+  };
+
+  const deleteUserProfile = (userId: string) => {
+    if (currentUser?.id === userId) {
+      notify('Нельзя удалить активный профиль текущего пользователя', 'error');
+      return;
+    }
+    setUsers(prev => prev.filter(u => u.id !== userId));
+    notify('Профиль пользователя удален из системы', 'info');
+  };
+
+  const logout = () => {
+    setCurrentUser(null);
+    setCurrentUserRole('guest');
+    setActiveTab('dashboard');
+    notify('Вы вышли из системы', 'info');
+  };
+
+  // Reset to seed data (SQLite /api/reset + fallback)
+  const resetDemoData = async () => {
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {}
+
+    try {
+      const res = await fetch('/api/reset', { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        setEvents(data.events);
+        setTasks(data.tasks);
+        setBudgetItems(data.budgetItems);
+        setGuests(data.guests);
+        setTeamMembers(data.teamMembers);
+        setContractors(data.contractors);
+        setSurveys(data.feedbacks || []);
+        setKanbanStages(data.kanbanStages);
+        setBroadcasts(data.mailings || []);
+        setUsers(data.users);
+        setActiveEventId(data.events[0]?.id || 'evt-1');
+        setActiveTab('dashboard');
+        setSelectedTeamMemberFilter(null);
+        if (data.meta) {
+          setDbMeta({
+            dbEngine: data.meta.dbEngine || 'SQLite 3 (WAL)',
+            dbFile: data.meta.dbFile || 'data/eventtech.db',
+            dbSizeKB: data.meta.dbSizeKB || 0,
+            totalRecords: data.meta.totalRecords || 0,
+            connected: true
+          });
+        }
+        if (currentUser) {
+          const fresh = data.users.find((u: UserProfile) => u.id === currentUser.id) || data.users[0];
+          setCurrentUser(fresh);
+          setCurrentUserRole(fresh.role);
+        }
+        notify('База данных SQLite (data/eventtech.db) сброшена к эталонным данным', 'success');
+        return;
+      }
+    } catch (e) {
+      console.warn('Failed to reset SQLite database via API, resetting locally', e);
+    }
+
     setEvents(INITIAL_EVENTS);
     setTasks(INITIAL_TASKS);
     setBudgetItems(INITIAL_BUDGET);
@@ -306,10 +571,15 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setSurveys(INITIAL_SURVEYS);
     setKanbanStages(INITIAL_KANBAN_STAGES);
     setBroadcasts(INITIAL_BROADCASTS);
+    setUsers(INITIAL_USERS);
     setActiveEventId('evt-1');
     setActiveTab('dashboard');
-    setCurrentUserRole('admin');
     setSelectedTeamMemberFilter(null);
+    if (currentUser) {
+      const fresh = INITIAL_USERS.find(u => u.id === currentUser.id) || INITIAL_USERS[0];
+      setCurrentUser(fresh);
+      setCurrentUserRole(fresh.role);
+    }
     notify('Демонстрационные данные успешно сброшены к исходному состоянию!', 'success');
   };
 
@@ -762,6 +1032,15 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         activeTab,
         currentUserRole,
         notifications,
+        users,
+        currentUser,
+        dbMeta,
+        loginAsUser,
+        loginByEmail,
+        registerUser,
+        updateUserProfile,
+        deleteUserProfile,
+        logout,
         isMobileMenuOpen,
         setIsMobileMenuOpen,
         isEventSwitcherOpen,

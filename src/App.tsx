@@ -10,13 +10,20 @@ import { GuestsView } from './components/views/GuestsView';
 import { TeamContractorsView } from './components/views/TeamContractorsView';
 import { CalendarView } from './components/views/CalendarView';
 import { AiAssistantView } from './components/views/AiAssistantView';
+import { AdminSystemView } from './components/views/AdminSystemView';
+import { AuthLandingView } from './components/auth/AuthLandingView';
 
 const MainContent: React.FC = () => {
-  const { activeTab, currentUserRole } = useEventContext();
+  const { activeTab, currentUserRole, currentUser } = useEventContext();
+
+  // If no user is authenticated, render public Landing & Auth screen
+  if (!currentUser) {
+    return <AuthLandingView />;
+  }
 
   const renderActiveView = () => {
     // If in guest mode and restricted tab is requested, fallback to guests portal
-    if (currentUserRole === 'guest' && (activeTab === 'settings' || activeTab === 'budget' || activeTab === 'team' || activeTab === 'ai_assistant')) {
+    if (currentUserRole === 'guest' && (activeTab === 'settings' || activeTab === 'budget' || activeTab === 'team' || activeTab === 'ai_assistant' || activeTab === 'admin_panel')) {
       return <GuestsView />;
     }
 
@@ -37,6 +44,12 @@ const MainContent: React.FC = () => {
         return <CalendarView />;
       case 'ai_assistant':
         return <AiAssistantView />;
+      case 'admin_panel':
+        return (currentUserRole === 'organizer' || currentUserRole === 'admin') ? (
+          <AdminSystemView />
+        ) : (
+          <DashboardView />
+        );
       default:
         return <DashboardView />;
     }

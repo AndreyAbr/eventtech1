@@ -352,7 +352,7 @@ export function generateEventBlueprint(
 
   return {
     eventId: event.id,
-    summary: `Интеллектуальный план для мероприятия «${event.title}» (${event.type}, ${plannedGuests} участников, бюджет ${budgetLimit.toLocaleString('ru-RU')} ₽).`,
+    summary: `План подготовки и контрольные показатели для «${event.title}» (${event.type}, ${plannedGuests} участников, лимит бюджета: ${budgetLimit.toLocaleString('ru-RU')} ₽).`,
     recommendedTasks,
     recommendedBudget,
     detectedRisks,

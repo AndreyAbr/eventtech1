@@ -1,1 +1,19 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Production build
+dist
+
+# SQLite database files
+data/*.db
+data/*.db-wal
+data/*.db-shm
+data/*.db*
+
+# Local environment & specs
+.env
+.env.local
+.DS_Store
 INTERACTIVITY_AND_KANBAN_SPEC.md

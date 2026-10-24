@@ -14,8 +14,7 @@ import {
   CheckCircle,
   Building2,
   Check,
-  ArrowRight,
-  Sparkles
+  ArrowRight
 } from 'lucide-react';
 import { useEventContext } from '../../context/EventContext';
 import { TeamMember, ContractorItem, ContractorStatus, MarketplaceItem } from '../../types/event';

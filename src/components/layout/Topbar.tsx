@@ -15,7 +15,10 @@ import {
   Users,
   Check,
   Sun,
-  Moon
+  Moon,
+  LogOut,
+  Shield,
+  User
 } from 'lucide-react';
 import { useEventContext } from '../../context/EventContext';
 import { formatDate, formatCurrency } from '../../utils/analytics';
@@ -29,7 +32,8 @@ const TAB_NAMES: Record<ActiveTab, string> = {
   guests: 'Гости и QR-билеты',
   team: 'Команда и подрядчики',
   calendar: 'Календарь',
-  ai_assistant: 'Ассистент и аудит'
+  ai_assistant: 'Помощник организатора',
+  admin_panel: 'Управление системой'
 };
 
 export const Topbar: React.FC = () => {
@@ -42,6 +46,10 @@ export const Topbar: React.FC = () => {
     metrics,
     currentUserRole,
     setCurrentUserRole,
+    users,
+    currentUser,
+    loginAsUser,
+    logout,
     theme,
     toggleTheme,
     resetDemoData,
@@ -54,6 +62,8 @@ export const Topbar: React.FC = () => {
     setIsEventSwitcherOpen,
     addEvent
   } = useEventContext();
+
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   // Create event modal state (invoked from switcher)
   const [isNewEventModalOpen, setIsNewEventModalOpen] = useState(false);
@@ -82,7 +92,7 @@ export const Topbar: React.FC = () => {
     goals: '',
     plannedHeadcount: 100,
     totalBudgetLimit: 1000000,
-    leadOrganizer: 'Алексей Морозов'
+    leadOrganizer: 'Андрей Абрамов'
   });
 
   const handleRoleChange = (role: UserRole) => {
@@ -150,7 +160,7 @@ export const Topbar: React.FC = () => {
           {/* Breadcrumb Segment 2: Active event title (navigates to settings) */}
           <button
             onClick={() => setActiveTab('settings')}
-            className="text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline truncate max-w-[180px] lg:max-w-[260px] text-left cursor-pointer"
+            className="text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 hover:underline truncate max-w-[220px] md:max-w-[320px] xl:max-w-[440px] text-left cursor-pointer"
             title="Перейти в параметры и паспорт мероприятия"
           >
             {activeEvent?.title || 'Без названия'}
@@ -180,18 +190,18 @@ export const Topbar: React.FC = () => {
           )}
         </div>
 
-        {/* Right: Readiness, Role Switcher, Theme Toggle & Reset */}
+        {/* Right: Compact Readiness, Theme Toggle & User Profile Popover */}
         <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 whitespace-nowrap">
-          {/* Readiness Meter (navigates to tasks) */}
+          {/* Compact Readiness Meter */}
           <button
             onClick={() => setActiveTab('tasks')}
-            className="hidden md:flex items-center gap-2 pr-3 border-r border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 px-2 py-1 rounded transition-colors cursor-pointer text-left shrink-0 whitespace-nowrap"
+            className="hidden xl:flex items-center gap-1.5 pr-2.5 border-r border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 px-2 py-1 rounded transition-colors cursor-pointer text-left shrink-0 whitespace-nowrap"
             title="Перейти к плану задач"
           >
-            <span className="text-xs font-mono text-zinc-600 dark:text-zinc-400 tabular-nums whitespace-nowrap">
-              Готовность {metrics.readinessPercent}%
+            <span className="text-xs font-mono font-medium text-zinc-600 dark:text-zinc-400 tabular-nums">
+              {metrics.readinessPercent}%
             </span>
-            <div className="w-16 h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-700">
+            <div className="w-12 h-1.5 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden border border-zinc-200 dark:border-zinc-700">
               <div
                 className="h-full bg-zinc-900 dark:bg-zinc-100 transition-all duration-300"
                 style={{ width: `${metrics.readinessPercent}%` }}
@@ -199,63 +209,149 @@ export const Topbar: React.FC = () => {
             </div>
           </button>
 
-          {/* Segmented Role Switcher */}
-          <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-md border border-zinc-200 dark:border-zinc-800 shrink-0">
-            <button
-              onClick={() => handleRoleChange('admin')}
-              className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${
-                currentUserRole === 'admin'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
-              }`}
-            >
-              Админ
-            </button>
-            <button
-              onClick={() => handleRoleChange('team')}
-              className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${
-                currentUserRole === 'team'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
-              }`}
-            >
-              Команда
-            </button>
-            <button
-              onClick={() => handleRoleChange('guest')}
-              className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${
-                currentUserRole === 'guest'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
-              }`}
-            >
-              Гость
-            </button>
-          </div>
-
           {/* Theme Toggle Button (Light / Dark) */}
           <button
             onClick={toggleTheme}
-            className="btn-secondary w-8 h-7 px-0 flex items-center justify-center text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 shrink-0"
+            className="btn-secondary w-8 h-8 px-0 flex items-center justify-center text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 shrink-0"
             title="Переключить тему (Светлая / Темная)"
             aria-label="Переключить тему"
           >
             {theme === 'dark' ? (
-              <Sun className="w-3.5 h-3.5 text-amber-400" />
+              <Sun className="w-4 h-4 text-amber-400" />
             ) : (
-              <Moon className="w-3.5 h-3.5 text-zinc-600" />
+              <Moon className="w-4 h-4 text-zinc-600" />
             )}
           </button>
 
-          {/* Reset Demo Button */}
-          <button
-            onClick={resetDemoData}
-            className="btn-secondary h-7 px-2.5 text-xs text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 shrink-0"
-            title="Сбросить к исходным демонстрационным данным"
-          >
-            <RotateCcw className="w-3.5 h-3.5 text-zinc-400" />
-            <span className="hidden sm:inline">Сбросить демо</span>
-          </button>
+          {/* User Profile Button with Popover */}
+          <div className="relative">
+            <button
+              onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+              className="flex items-center gap-2 p-1 pl-1.5 pr-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800/70 transition-colors shadow-xs cursor-pointer"
+              title="Меню профиля и переключение аккаунтов"
+            >
+              <div className="w-6 h-6 rounded-full bg-zinc-800 dark:bg-zinc-700 text-white text-[10px] font-bold font-mono flex items-center justify-center shrink-0">
+                {currentUser?.avatarInitials || 'User'}
+              </div>
+              <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200 truncate max-w-[120px] hidden sm:inline">
+                {currentUser?.name || 'Пользователь'}
+              </span>
+              {currentUser && (
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
+                  {currentUser.role === 'organizer' || currentUser.role === 'admin' ? 'Админ' : currentUser.role === 'team' ? 'Команда' : 'Гость'}
+                </span>
+              )}
+              <ChevronDown className="w-3 h-3 text-zinc-400" />
+            </button>
+
+            {/* Dropdown Popover */}
+            {isProfileMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setIsProfileMenuOpen(false)}
+                />
+                <div className="absolute right-0 mt-1.5 w-72 rounded-lg bg-white dark:bg-[#141418] border border-zinc-200 dark:border-zinc-800 shadow-xl z-50 overflow-hidden animate-fade-in text-xs">
+                  {/* User Info Header */}
+                  <div className="p-3.5 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/60 dark:bg-zinc-900/40">
+                    <div className="flex items-center gap-2.5 mb-1.5">
+                      <div className="w-8 h-8 rounded-full bg-zinc-800 dark:bg-zinc-700 text-white text-xs font-bold font-mono flex items-center justify-center shrink-0">
+                        {currentUser?.avatarInitials || 'User'}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+                          {currentUser?.name || 'Гость системы'}
+                        </div>
+                        <div className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400 truncate">
+                          {currentUser?.email || 'guest@eventtech.ru'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-[11px] text-zinc-600 dark:text-zinc-400 truncate mt-1">
+                      {currentUser?.position}
+                    </div>
+                  </div>
+
+                  {/* Demo Fast Switch Section */}
+                  <div className="p-2 border-b border-zinc-200 dark:border-zinc-800">
+                    <div className="px-2 py-1 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
+                      Быстрое переключение профиля (Демо)
+                    </div>
+                    <div className="space-y-0.5 max-h-48 overflow-y-auto">
+                      {users.map(u => {
+                        const isSelected = u.id === currentUser?.id;
+                        return (
+                          <button
+                            key={u.id}
+                            onClick={() => {
+                              loginAsUser(u.id);
+                              setIsProfileMenuOpen(false);
+                            }}
+                            className={`w-full text-left px-2 py-1.5 rounded-md flex items-center justify-between transition-colors ${
+                              isSelected
+                                ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-medium'
+                                : 'hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="w-5 h-5 rounded-full bg-zinc-200 dark:bg-zinc-700 text-[9px] font-bold font-mono flex items-center justify-center shrink-0 text-zinc-800 dark:text-zinc-200">
+                                {u.avatarInitials}
+                              </span>
+                              <span className="truncate text-xs">{u.name}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 shrink-0 ml-1">
+                              <span className="text-[9px] font-medium px-1.5 py-0.2 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
+                                {u.role === 'organizer' || u.role === 'admin' ? 'Админ' : u.role === 'team' ? 'Команда' : 'Гость'}
+                              </span>
+                              {isSelected && <Check className="w-3.5 h-3.5 text-zinc-900 dark:text-zinc-100" />}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="p-1.5 space-y-0.5">
+                    {(currentUserRole === 'organizer' || currentUserRole === 'admin') && (
+                      <button
+                        onClick={() => {
+                          setActiveTab('admin_panel');
+                          setIsProfileMenuOpen(false);
+                        }}
+                        className="w-full text-left px-2.5 py-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center gap-2 transition-colors cursor-pointer"
+                      >
+                        <Shield className="w-3.5 h-3.5 text-zinc-500" />
+                        <span>Управление системой и профилями</span>
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        resetDemoData();
+                        setIsProfileMenuOpen(false);
+                      }}
+                      className="w-full text-left px-2.5 py-1.5 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 flex items-center gap-2 transition-colors cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-zinc-400" />
+                      <span>Сбросить демо-данные</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsProfileMenuOpen(false);
+                      }}
+                      className="w-full text-left px-2.5 py-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-950/40 text-red-600 dark:text-red-400 flex items-center gap-2 transition-colors cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Выйти на главную</span>
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </header>
 

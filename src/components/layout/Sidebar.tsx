@@ -7,10 +7,10 @@ import {
   Users,
   Briefcase,
   Calendar,
-  Sparkles,
   Plus,
   X,
-  ChevronDown
+  ChevronDown,
+  Shield
 } from 'lucide-react';
 import { useEventContext } from '../../context/EventContext';
 import { ActiveTab, EventType } from '../../types/event';
@@ -25,6 +25,7 @@ export const Sidebar: React.FC = () => {
     metrics,
     addEvent,
     currentUserRole,
+    users,
     isMobileMenuOpen,
     setIsMobileMenuOpen
   } = useEventContext();
@@ -55,7 +56,7 @@ export const Sidebar: React.FC = () => {
     goals: '',
     plannedHeadcount: 100,
     totalBudgetLimit: 1000000,
-    leadOrganizer: 'Алексей Морозов'
+    leadOrganizer: 'Андрей Абрамов'
   });
 
   const handleCreateSubmit = (e: React.FormEvent) => {
@@ -107,8 +108,11 @@ export const Sidebar: React.FC = () => {
       icon: Wallet,
       hideInGuest: true,
       badge: metrics.isOverTotalLimit ? (
-        <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/40 font-medium shrink-0">
-          перерасход
+        <span
+          title="Превышение лимита бюджета!"
+          className="inline-flex items-center justify-center w-5 h-5 text-[11px] font-mono font-bold rounded bg-red-100 text-red-700 border border-red-300 dark:bg-red-950/80 dark:text-red-400 dark:border-red-800 shrink-0"
+        >
+          !
         </span>
       ) : null
     },
@@ -117,14 +121,9 @@ export const Sidebar: React.FC = () => {
     { id: 'calendar', label: 'Календарь', icon: Calendar },
     {
       id: 'ai_assistant',
-      label: 'Ассистент и аудит',
-      icon: Sparkles,
-      hideInGuest: true,
-      badge: (
-        <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-zinc-200/80 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium">
-          AUTO
-        </span>
-      )
+      label: 'Помощник организатора',
+      icon: CheckSquare,
+      hideInGuest: true
     }
   ];
 
@@ -165,8 +164,8 @@ export const Sidebar: React.FC = () => {
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700/80">
-              v1.0
+            <span className="text-[10px] font-mono text-zinc-400 bg-zinc-200/60 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
+              Alpha 0.4
             </span>
             <button
               onClick={e => {
@@ -248,16 +247,35 @@ export const Sidebar: React.FC = () => {
               </button>
             );
           })}
-        </nav>
 
-        {/* Footer */}
-        <div className="p-3 border-t border-zinc-200 dark:border-zinc-800/80 text-xs text-zinc-500 dark:text-zinc-400 flex items-center justify-between bg-transparent dark:bg-transparent">
-          <span className="flex items-center gap-1.5 font-mono text-[11px]">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-            Локальная БД
-          </span>
-          <span className="font-mono text-[11px] text-zinc-400 dark:text-zinc-500">MVP</span>
-        </div>
+          {/* System Section for Admins / Organizers */}
+          {(currentUserRole === 'organizer' || currentUserRole === 'admin') && (
+            <div className="pt-3">
+              <div className="px-2 py-1 text-[11px] font-medium text-zinc-400 dark:text-zinc-500 uppercase tracking-wider">
+                СИСТЕМА
+              </div>
+              <button
+                onClick={() => {
+                  setActiveTab('admin_panel');
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full h-8 px-2.5 rounded-md text-[13px] font-medium flex items-center justify-between transition-colors ${
+                  activeTab === 'admin_panel'
+                    ? 'bg-zinc-200/80 dark:bg-zinc-800/90 text-zinc-900 dark:text-zinc-100'
+                    : 'text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/40 dark:hover:bg-zinc-800/40 hover:text-zinc-900 dark:hover:text-zinc-100'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <Shield className={`w-4 h-4 shrink-0 ${activeTab === 'admin_panel' ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500 dark:text-zinc-400'}`} />
+                  <span className="truncate">Управление системой</span>
+                </div>
+                <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-zinc-200/80 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium shrink-0">
+                  {users.length}
+                </span>
+              </button>
+            </div>
+          )}
+        </nav>
       </aside>
 
       {/* Modal: New Event */}

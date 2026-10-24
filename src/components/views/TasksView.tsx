@@ -498,7 +498,7 @@ export const TasksView: React.FC = () => {
                         <span className={`w-2 h-2 rounded-full shrink-0 ${colorStyle.dot}`} />
                         <h3
                           onClick={() => handleStartEditStage(stage)}
-                          className="text-xs font-semibold text-zinc-800 truncate cursor-pointer hover:underline"
+                          className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 truncate cursor-pointer hover:underline"
                           title="Нажмите для переименования этапа"
                         >
                           {stage.title}
@@ -511,7 +511,7 @@ export const TasksView: React.FC = () => {
                       </div>
 
                       <div className="flex items-center gap-1">
-                        <span className="text-xs font-mono text-zinc-500 bg-zinc-200/70 px-1.5 py-0.2 rounded text-[11px]">
+                        <span className="bg-zinc-200/80 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 border border-zinc-300/80 dark:border-zinc-700 px-1.5 py-0.5 rounded text-xs font-mono font-semibold">
                           {stageTasks.length}
                         </span>
 

@@ -8,7 +8,8 @@ import {
   SurveyResponse,
   KanbanStage,
   MarketplaceItem,
-  BroadcastMessage
+  BroadcastMessage,
+  UserProfile
 } from '../types/event';
 
 // Helper to calculate dates relative to today
@@ -32,7 +33,7 @@ export const INITIAL_EVENTS: EventEntity[] = [
     goals: 'Создание 20+ работающих прототипов, отбор перспективных ИТ-стартапов, нетворкинг и найм талантливых специалистов.',
     plannedHeadcount: 300,
     totalBudgetLimit: 2500000,
-    leadOrganizer: 'Алексей Морозов'
+    leadOrganizer: 'Андрей Абрамов'
   },
   {
     id: 'evt-2',
@@ -68,14 +69,44 @@ export const INITIAL_EVENTS: EventEntity[] = [
 
 export const INITIAL_TEAM: TeamMember[] = [
   {
+    id: 'tm-dev-1',
+    eventId: 'evt-1',
+    fullName: 'Андрей Абрамов',
+    roleTitle: 'Lead Developer / Архитектор системы',
+    zoneOfResponsibility: 'Архитектура платформы, бэкенд SQLite, безопасность и API',
+    email: 'a.abramov@eventtech.ru',
+    phone: '+7 (999) 100-20-01',
+    systemRole: 'admin'
+  },
+  {
+    id: 'tm-dev-2',
+    eventId: 'evt-1',
+    fullName: 'Данил Сивцев',
+    roleTitle: 'Core Developer / Системный администратор',
+    zoneOfResponsibility: 'Инфраструктура, синхронизация БД, производительность',
+    email: 'd.sivtsev@eventtech.ru',
+    phone: '+7 (999) 100-20-02',
+    systemRole: 'admin'
+  },
+  {
+    id: 'tm-dev-3',
+    eventId: 'evt-1',
+    fullName: 'Дмитрий Жирохов',
+    roleTitle: 'Product & UI Developer / Администратор',
+    zoneOfResponsibility: 'Дизайн-система, интерфейсы Linear/Vercel, Канбан и UX',
+    email: 'd.zhirokhov@eventtech.ru',
+    phone: '+7 (999) 100-20-03',
+    systemRole: 'admin'
+  },
+  {
     id: 'tm-1',
     eventId: 'evt-1',
     fullName: 'Алексей Морозов',
-    roleTitle: 'Главный организатор / Lead Producer',
-    zoneOfResponsibility: 'Общая координация, договоры, площадка, безопасность',
-    email: 'alexey.morozov@eventtech.pro',
+    roleTitle: 'Координатор площадки',
+    zoneOfResponsibility: 'Логистика площадки, пропуска, контроль сцены',
+    email: 'a.morozov@eventtech.ru',
     phone: '+7 (999) 111-22-33',
-    systemRole: 'admin'
+    systemRole: 'team'
   },
   {
     id: 'tm-2',
@@ -677,5 +708,82 @@ export const INITIAL_BROADCASTS: BroadcastMessage[] = [
     audience: 'vip',
     sentAt: new Date(Date.now() - 3600000 * 2).toISOString(),
     recipientCount: 2
+  }
+];
+
+export const INITIAL_USERS: UserProfile[] = [
+  {
+    id: 'usr-admin-1',
+    name: 'Андрей Абрамов',
+    email: 'a.abramov@eventtech.ru',
+    role: 'organizer',
+    position: 'Lead Developer / Архитектор системы',
+    phone: '+7 (999) 100-20-01',
+    avatarInitials: 'АА',
+    createdAt: '2026-01-01T08:00:00Z',
+    isSystemDefault: true
+  },
+  {
+    id: 'usr-admin-2',
+    name: 'Данил Сивцев',
+    email: 'd.sivtsev@eventtech.ru',
+    role: 'organizer',
+    position: 'Core Developer / Системный администратор',
+    phone: '+7 (999) 100-20-02',
+    avatarInitials: 'ДС',
+    createdAt: '2026-01-01T08:30:00Z',
+    isSystemDefault: true
+  },
+  {
+    id: 'usr-admin-3',
+    name: 'Дмитрий Жирохов',
+    email: 'd.zhirokhov@eventtech.ru',
+    role: 'organizer',
+    position: 'Product & UI Developer / Администратор',
+    phone: '+7 (999) 100-20-03',
+    avatarInitials: 'ДЖ',
+    createdAt: '2026-01-01T09:00:00Z',
+    isSystemDefault: true
+  },
+  {
+    id: 'usr-team-1',
+    name: 'Алексей Морозов',
+    email: 'a.morozov@eventtech.ru',
+    role: 'team',
+    position: 'Координатор площадки',
+    phone: '+7 (916) 123-45-67',
+    avatarInitials: 'АМ',
+    createdAt: '2026-01-10T10:00:00Z'
+  },
+  {
+    id: 'usr-team-2',
+    name: 'Ирина Соколова',
+    email: 'i.sokolova@eventtech.ru',
+    role: 'team',
+    position: 'Технический специалист',
+    phone: '+7 (916) 234-56-78',
+    avatarInitials: 'ИС',
+    createdAt: '2026-01-15T11:30:00Z'
+  },
+  {
+    id: 'usr-team-3',
+    name: 'Анна Волкова',
+    email: 'a.volkova@eventtech.ru',
+    role: 'team',
+    position: 'PR и работа со спикерами',
+    phone: '+7 (916) 345-67-89',
+    avatarInitials: 'АВ',
+    createdAt: '2026-01-20T14:15:00Z'
+  },
+  {
+    id: 'usr-guest-1',
+    name: 'Максим Белов',
+    email: 'm.belov@techcorp.ru',
+    role: 'guest',
+    position: 'Участник хакатона (VIP Гость)',
+    phone: '+7 (916) 567-89-01',
+    avatarInitials: 'МБ',
+    createdAt: '2026-02-15T16:45:00Z',
+    isSystemDefault: true
   }
 ];

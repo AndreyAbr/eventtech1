@@ -1,4 +1,16 @@
-export type UserRole = 'admin' | 'team' | 'guest';
+export type UserRole = 'organizer' | 'admin' | 'team' | 'guest';
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole; // 'organizer' (Администратор), 'team' (Команда), 'guest' (Гость/Участник)
+  position: string; // Должность / организация
+  phone?: string;
+  avatarInitials: string;
+  createdAt: string;
+  isSystemDefault?: boolean;
+}
 
 export type EventType = 'Конференция' | 'Хакатон' | 'Корпоратив' | 'Форум' | 'Воркшоп' | 'Выставка';
 
@@ -158,7 +170,10 @@ export type ActiveTab =
   | 'guests'
   | 'team'
   | 'calendar'
-  | 'ai_assistant';
+  | 'ai_assistant'
+  | 'admin_panel';
+
+export type NavigationTab = ActiveTab;
 
 export interface NotificationToast {
   id: string;

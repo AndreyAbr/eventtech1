@@ -1,19 +1,16 @@
 import React, { useState } from 'react';
 import {
-  Cpu,
   CheckSquare,
   Wallet,
   AlertTriangle,
   Clock,
   CheckCircle2,
-  Calendar,
-  Layers,
   ArrowRight,
   ShieldAlert,
-  Zap,
   ListTodo,
-  FileSpreadsheet,
-  Check
+  Check,
+  Info,
+  Plus
 } from 'lucide-react';
 import { useEventContext } from '../../context/EventContext';
 import { generateEventBlueprint } from '../../utils/aiGenerator';
@@ -94,34 +91,27 @@ export const AiAssistantView: React.FC = () => {
   const criticalRisksCount = blueprint.detectedRisks.filter(r => r.severity === 'critical').length;
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
+    <div className="space-y-4 animate-fade-in pb-10">
+      {/* 1. Header (Clean & Human B2B) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-200 dark:border-zinc-800 pb-3">
         <div>
           <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight">
-            Автоматизация и аудит проекта
+            Помощник организатора и проверка проекта
           </h1>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Детерминированный ассистент планирования, аудит рисков и расчет сметы по нормативам
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+            Быстрое формирование чек-листа задач, расчёт базовой сметы, проверка рисков подготовки и расписания
           </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            Модель: Детерминированный анализатор
-          </span>
         </div>
       </div>
 
-      {/* Engineering Summary Card */}
+      {/* 2. Project Summary Card */}
       <div className="card-surface p-4 bg-zinc-50/60 dark:bg-zinc-900/40">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-1 max-w-3xl">
             <div className="flex items-center gap-2">
-              <Cpu className="w-4 h-4 text-zinc-700 dark:text-zinc-300" />
+              <Info className="w-4 h-4 text-zinc-500 shrink-0" />
               <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider">
-                Заключение координатора
+                Сводка проекта
               </span>
               <span className="text-[11px] font-mono text-zinc-500 dark:text-zinc-400">
                 формат: {activeEvent.type}
@@ -134,70 +124,70 @@ export const AiAssistantView: React.FC = () => {
 
           <div className="flex items-center gap-3 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-zinc-200 dark:border-zinc-800 w-full md:w-auto justify-between md:justify-end">
             <div className="text-right">
-              <span className="block text-[11px] text-zinc-400 dark:text-zinc-500">Статус проверок</span>
+              <span className="block text-[11px] text-zinc-400 dark:text-zinc-500">Статус данных</span>
               <span className="inline-flex items-center gap-1 font-mono text-xs font-medium text-emerald-700 dark:text-emerald-400">
                 <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-                Готов к импорту
+                Готов к применению
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Module Selector Navigation Tabs */}
+      {/* 3. Module Selector Navigation Tabs (Calm, no sparkles) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         <button
           onClick={() => setActiveModule('checklist')}
-          className={`p-3 rounded-md border text-left transition-colors flex items-center justify-between ${
+          className={`p-3 rounded-md border text-left transition-colors flex items-center justify-between cursor-pointer ${
             activeModule === 'checklist'
-              ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100 shadow-sm'
+              ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100 shadow-xs'
               : 'bg-white dark:bg-[#121215] text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 hover:text-zinc-900 dark:hover:text-zinc-100'
           }`}
         >
           <div className="flex items-center gap-2.5">
-            <ListTodo className={`w-4 h-4 ${activeModule === 'checklist' ? 'text-white dark:text-zinc-900' : 'text-zinc-500 dark:text-zinc-400'}`} />
+            <ListTodo className={`w-4 h-4 shrink-0 ${activeModule === 'checklist' ? 'text-white dark:text-zinc-900' : 'text-zinc-500 dark:text-zinc-400'}`} />
             <div>
-              <div className="text-xs font-semibold">1. Базовый план работ</div>
+              <div className="text-xs font-semibold">Шаблон задач</div>
               <div className={`text-[11px] font-mono ${activeModule === 'checklist' ? 'text-zinc-300 dark:text-zinc-600' : 'text-zinc-400 dark:text-zinc-500'}`}>
                 {blueprint.recommendedTasks.length} задач
               </div>
             </div>
           </div>
-          <ArrowRight className={`w-3.5 h-3.5 ${activeModule === 'checklist' ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-300 dark:text-zinc-600'}`} />
+          <ArrowRight className={`w-3.5 h-3.5 shrink-0 ${activeModule === 'checklist' ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-300 dark:text-zinc-600'}`} />
         </button>
 
         <button
           onClick={() => setActiveModule('budget')}
-          className={`p-3 rounded-md border text-left transition-colors flex items-center justify-between ${
+          className={`p-3 rounded-md border text-left transition-colors flex items-center justify-between cursor-pointer ${
             activeModule === 'budget'
-              ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100 shadow-sm'
+              ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100 shadow-xs'
               : 'bg-white dark:bg-[#121215] text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 hover:text-zinc-900 dark:hover:text-zinc-100'
           }`}
         >
           <div className="flex items-center gap-2.5">
-            <Wallet className={`w-4 h-4 ${activeModule === 'budget' ? 'text-white dark:text-zinc-900' : 'text-zinc-500 dark:text-zinc-400'}`} />
+            <Wallet className={`w-4 h-4 shrink-0 ${activeModule === 'budget' ? 'text-white dark:text-zinc-900' : 'text-zinc-500 dark:text-zinc-400'}`} />
             <div>
-              <div className="text-xs font-semibold">2. Нормативы сметы</div>
+              <div className="text-xs font-semibold">Расчёт сметы</div>
               <div className={`text-[11px] font-mono ${activeModule === 'budget' ? 'text-zinc-300 dark:text-zinc-600' : 'text-zinc-400 dark:text-zinc-500'}`}>
                 {blueprint.recommendedBudget.length} категорий
               </div>
             </div>
           </div>
-          <ArrowRight className={`w-3.5 h-3.5 ${activeModule === 'budget' ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-300 dark:text-zinc-600'}`} />
+          <ArrowRight className={`w-3.5 h-3.5 shrink-0 ${activeModule === 'budget' ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-300 dark:text-zinc-600'}`} />
         </button>
 
         <button
           onClick={() => setActiveModule('risks')}
-          className={`p-3 rounded-md border text-left transition-colors flex items-center justify-between ${
+          className={`p-3 rounded-md border text-left transition-colors flex items-center justify-between cursor-pointer ${
             activeModule === 'risks'
-              ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100 shadow-sm'
+              ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100 shadow-xs'
               : 'bg-white dark:bg-[#121215] text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 hover:text-zinc-900 dark:hover:text-zinc-100'
           }`}
         >
           <div className="flex items-center gap-2.5">
-            <ShieldAlert className={`w-4 h-4 ${activeModule === 'risks' ? 'text-white dark:text-zinc-900' : 'text-zinc-500 dark:text-zinc-400'}`} />
+            <ShieldAlert className={`w-4 h-4 shrink-0 ${activeModule === 'risks' ? 'text-white dark:text-zinc-900' : 'text-zinc-500 dark:text-zinc-400'}`} />
             <div>
-              <div className="text-xs font-semibold">3. Диагностика рисков</div>
+              <div className="text-xs font-semibold">Проверка рисков</div>
               <div className={`text-[11px] font-mono ${activeModule === 'risks' ? 'text-zinc-300 dark:text-zinc-600' : 'text-zinc-400 dark:text-zinc-500'}`}>
                 {blueprint.detectedRisks.length} проверок
                 {criticalRisksCount > 0 && (
@@ -208,31 +198,31 @@ export const AiAssistantView: React.FC = () => {
               </div>
             </div>
           </div>
-          <ArrowRight className={`w-3.5 h-3.5 ${activeModule === 'risks' ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-300 dark:text-zinc-600'}`} />
+          <ArrowRight className={`w-3.5 h-3.5 shrink-0 ${activeModule === 'risks' ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-300 dark:text-zinc-600'}`} />
         </button>
 
         <button
           onClick={() => setActiveModule('schedule')}
-          className={`p-3 rounded-md border text-left transition-colors flex items-center justify-between ${
+          className={`p-3 rounded-md border text-left transition-colors flex items-center justify-between cursor-pointer ${
             activeModule === 'schedule'
-              ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100 shadow-sm'
+              ? 'bg-zinc-900 text-white border-zinc-900 dark:bg-zinc-100 dark:text-zinc-900 dark:border-zinc-100 shadow-xs'
               : 'bg-white dark:bg-[#121215] text-zinc-700 dark:text-zinc-300 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 hover:text-zinc-900 dark:hover:text-zinc-100'
           }`}
         >
           <div className="flex items-center gap-2.5">
-            <Clock className={`w-4 h-4 ${activeModule === 'schedule' ? 'text-white dark:text-zinc-900' : 'text-zinc-500 dark:text-zinc-400'}`} />
+            <Clock className={`w-4 h-4 shrink-0 ${activeModule === 'schedule' ? 'text-white dark:text-zinc-900' : 'text-zinc-500 dark:text-zinc-400'}`} />
             <div>
-              <div className="text-xs font-semibold">4. Тайминг площадки</div>
+              <div className="text-xs font-semibold">Тайминг программы</div>
               <div className={`text-[11px] font-mono ${activeModule === 'schedule' ? 'text-zinc-300 dark:text-zinc-600' : 'text-zinc-400 dark:text-zinc-500'}`}>
                 {blueprint.eventSchedule.length} слотов дня
               </div>
             </div>
           </div>
-          <ArrowRight className={`w-3.5 h-3.5 ${activeModule === 'schedule' ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-300 dark:text-zinc-600'}`} />
+          <ArrowRight className={`w-3.5 h-3.5 shrink-0 ${activeModule === 'schedule' ? 'text-zinc-400 dark:text-zinc-500' : 'text-zinc-300 dark:text-zinc-600'}`} />
         </button>
       </div>
 
-      {/* MODULE 1: CHECKLIST GENERATOR */}
+      {/* MODULE 1: CHECKLIST / TASK TEMPLATE */}
       {activeModule === 'checklist' && (
         <div className="card-surface overflow-hidden">
           <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-50/50 dark:bg-zinc-900/60">
@@ -242,7 +232,7 @@ export const AiAssistantView: React.FC = () => {
                 Рекомендованный чек-лист подготовки («{activeEvent.type}»)
               </h2>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-                Сгенерировано с учетом даты старта (<span className="font-mono">{formatDate(activeEvent.startDate)}</span>) и масштаба мероприятия
+                Сформировано с учетом даты старта (<span className="font-mono">{formatDate(activeEvent.startDate)}</span>) и масштаба мероприятия
               </p>
             </div>
 
@@ -262,8 +252,8 @@ export const AiAssistantView: React.FC = () => {
                 disabled={selectedTaskIndices.length === 0}
                 className="btn-primary h-8"
               >
-                <Zap className="w-3.5 h-3.5" />
-                <span>Импортировать задачи в план ({selectedTaskIndices.length})</span>
+                <Plus className="w-3.5 h-3.5" />
+                <span>Добавить в план задач ({selectedTaskIndices.length})</span>
               </button>
             </div>
           </div>
@@ -275,6 +265,7 @@ export const AiAssistantView: React.FC = () => {
                   <th className="py-2.5 px-3.5 w-10 text-center">
                     <input
                       type="checkbox"
+                      aria-label="Выбрать все задачи"
                       checked={selectedTaskIndices.length === blueprint.recommendedTasks.length && blueprint.recommendedTasks.length > 0}
                       onChange={toggleSelectAllTasks}
                       className="rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:ring-zinc-900 w-3.5 h-3.5 cursor-pointer"
@@ -301,6 +292,7 @@ export const AiAssistantView: React.FC = () => {
                       <td className="py-3 px-3.5 text-center" onClick={e => e.stopPropagation()}>
                         <input
                           type="checkbox"
+                          aria-label={`Выбрать задачу ${task.title}`}
                           checked={isSelected}
                           onChange={() => toggleTaskSelection(idx)}
                           className="rounded border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:ring-zinc-900 w-3.5 h-3.5 cursor-pointer"
@@ -419,10 +411,10 @@ export const AiAssistantView: React.FC = () => {
           <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/60">
             <h2 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider flex items-center gap-2">
               <ShieldAlert className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-              Диагностика рисков и узких мест проекта
+              Проверка рисков и узких мест проекта
             </h2>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-              Автоматический инженерный аудит метрик готовности, соблюдения дедлайнов и структуры бюджета
+              Анализ метрик готовности, дедлайнов задач и структуры бюджета
             </p>
           </div>
 
@@ -475,7 +467,7 @@ export const AiAssistantView: React.FC = () => {
 
                 <div className="ml-6 bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 rounded p-2.5 text-xs text-zinc-700 dark:text-zinc-300">
                   <span className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block mb-0.5">
-                    Инженерная рекомендация:
+                    Рекомендация:
                   </span>
                   <span>{risk.recommendation}</span>
                 </div>
@@ -491,7 +483,7 @@ export const AiAssistantView: React.FC = () => {
           <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/60">
             <h2 className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wider flex items-center gap-2">
               <Clock className="w-3.5 h-3.5 text-zinc-700 dark:text-zinc-300" />
-              Генератор тайминга площадки («{activeEvent.title}»)
+              Тайминг программы («{activeEvent.title}»)
             </h2>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
               Хронологическая поминутная программа и распределение потоков по локациям
