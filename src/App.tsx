@@ -43,11 +43,11 @@ const MainContent: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen w-full bg-[#FAFAFA] text-zinc-900 overflow-hidden font-sans">
+    <div className="flex h-screen w-full bg-[#FAFAFA] dark:bg-[#09090B] text-zinc-900 dark:text-zinc-100 overflow-hidden font-sans">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
         <Topbar />
-        <main className="flex-1 overflow-y-auto px-6 py-5">
+        <main className="flex-1 overflow-y-auto px-6 py-5 bg-[#FAFAFA] dark:bg-[#09090B]">
           <div className="max-w-6xl mx-auto">
             {renderActiveView()}
           </div>

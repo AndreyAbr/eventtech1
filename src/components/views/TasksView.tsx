@@ -312,13 +312,13 @@ export const TasksView: React.FC = () => {
       <div className="card-surface p-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Left: View Mode Toggle, Overdue Filter & Active Assignee Indicator */}
         <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center bg-zinc-100 p-0.5 rounded-md border border-zinc-200">
+          <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-md border border-zinc-200 dark:border-zinc-800">
             <button
               onClick={() => setViewMode('kanban')}
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
                 viewMode === 'kanban'
-                  ? 'bg-white text-zinc-900 shadow-sm'
-                  : 'text-zinc-600 hover:text-zinc-900'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
             >
               <Kanban className="w-3.5 h-3.5" />
@@ -328,8 +328,8 @@ export const TasksView: React.FC = () => {
               onClick={() => setViewMode('list')}
               className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-medium transition-all ${
                 viewMode === 'list'
-                  ? 'bg-white text-zinc-900 shadow-sm'
-                  : 'text-zinc-600 hover:text-zinc-900'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
             >
               <List className="w-3.5 h-3.5" />

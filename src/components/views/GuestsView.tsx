@@ -226,8 +226,8 @@ export const GuestsView: React.FC = () => {
               onClick={() => setCurrentSubTab('list')}
               className={`px-3 py-1 rounded text-xs font-medium transition-all ${
                 currentSubTab === 'list'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
             >
               Список ({activeGuests.length})
@@ -238,8 +238,8 @@ export const GuestsView: React.FC = () => {
             onClick={() => setCurrentSubTab('registration')}
             className={`px-3 py-1 rounded text-xs font-medium transition-all ${
               currentSubTab === 'registration'
-                ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
             }`}
           >
             {isGuestMode ? 'Онлайн-регистрация' : 'Регистрация'}
@@ -250,8 +250,8 @@ export const GuestsView: React.FC = () => {
               onClick={() => setCurrentSubTab('terminal')}
               className={`px-3 py-1 rounded text-xs font-medium transition-all ${
                 currentSubTab === 'terminal'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
             >
               QR Чек-ин
@@ -262,8 +262,8 @@ export const GuestsView: React.FC = () => {
             onClick={() => setCurrentSubTab('surveys')}
             className={`px-3 py-1 rounded text-xs font-medium transition-all ${
               currentSubTab === 'surveys'
-                ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
             }`}
           >
             Отзывы ({activeSurveys.length})
@@ -411,12 +411,20 @@ export const GuestsView: React.FC = () => {
                           aria-label="Изменить статус участника"
                           value={guest.status}
                           onChange={e => updateGuest({ ...guest, status: e.target.value as GuestStatus })}
-                          className="h-7 px-1.5 rounded border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400 cursor-pointer"
+                          className={`h-7 px-2 rounded border text-xs font-medium focus:outline-none cursor-pointer transition-colors ${
+                            guest.status === 'checked_in'
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/70'
+                              : guest.status === 'confirmed'
+                              ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/70'
+                              : guest.status === 'cancelled'
+                              ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800/70'
+                              : 'bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700'
+                          }`}
                         >
-                          <option value="registered">Зарегистрирован</option>
-                          <option value="confirmed">Подтвержден</option>
-                          <option value="checked_in">На площадке (Чек-ин)</option>
-                          <option value="cancelled">Отменен</option>
+                          <option value="registered" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Зарегистрирован</option>
+                          <option value="confirmed" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Подтвержден</option>
+                          <option value="checked_in" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">На площадке (Чек-ин)</option>
+                          <option value="cancelled" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Отменен</option>
                         </select>
                       </td>
 
@@ -1019,7 +1027,7 @@ export const GuestsView: React.FC = () => {
             {/* Ticket Body */}
             <div className="p-5 text-center space-y-4">
               {/* SVG QR Code Pod - Explicitly pure white for camera scanner readability */}
-              <div className="inline-block p-3 border border-zinc-200 rounded-md bg-white shadow-sm">
+              <div className="qr-white-box inline-block p-3 border border-zinc-200 rounded-md bg-white shadow-sm">
                 <QRCodeSVG
                   value={viewTicketGuest.qrCodeToken}
                   size={140}

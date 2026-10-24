@@ -107,7 +107,7 @@ export const Sidebar: React.FC = () => {
       icon: Wallet,
       hideInGuest: true,
       badge: metrics.isOverTotalLimit ? (
-        <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/40 font-medium">
+        <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/40 font-medium shrink-0">
           перерасход
         </span>
       ) : null
@@ -142,7 +142,7 @@ export const Sidebar: React.FC = () => {
 
       <aside className={`
         fixed inset-y-0 left-0 z-50 w-64 bg-[#F4F4F5] dark:bg-[#0C0C0E] border-r border-zinc-200 dark:border-zinc-800/80 flex flex-col h-screen select-none transition-transform duration-200 ease-in-out
-        md:static md:w-60 md:min-w-[240px] md:translate-x-0
+        md:static md:w-64 md:min-w-[256px] md:translate-x-0
         ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'}
       `}>
         {/* Brand Header (Clickable -> Dashboard) */}
@@ -151,19 +151,21 @@ export const Sidebar: React.FC = () => {
             setActiveTab('dashboard');
             setIsMobileMenuOpen(false);
           }}
-          className="h-12 px-4 border-b border-zinc-200 dark:border-zinc-800/80 flex items-center justify-between bg-white/50 dark:bg-[#101014]/60 cursor-pointer hover:bg-white/80 dark:hover:bg-[#141418] transition-colors"
+          className="h-12 px-4 border-b border-zinc-200 dark:border-zinc-800/80 flex items-center justify-between bg-zinc-100/60 dark:bg-[#0C0C0E] cursor-pointer hover:bg-zinc-200/50 dark:hover:bg-[#121215] transition-colors"
           title="На главную (Дашборд)"
         >
-          <div className="flex items-center gap-2">
-            <div className="bg-white dark:bg-zinc-100 px-1.5 py-0.5 rounded border border-zinc-200/60 dark:border-zinc-700 flex items-center shadow-xs">
-              <img src="/logo.png" alt="EventTech" className="h-4.5 w-auto object-contain" />
-            </div>
-            <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 tracking-tight">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <img
+              src="/logo.png"
+              alt="EventTech"
+              className="sidebar-brand-logo h-[18px] w-auto shrink-0 object-contain transition-all"
+            />
+            <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 tracking-tight shrink-0">
               Hub
             </span>
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
+            <span className="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800/80 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700/80">
               v1.0
             </span>
             <button
@@ -240,7 +242,7 @@ export const Sidebar: React.FC = () => {
               >
                 <div className="flex items-center gap-2.5 min-w-0">
                   <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-zinc-900 dark:text-zinc-100' : 'text-zinc-500 dark:text-zinc-400'}`} />
-                  <span className="whitespace-nowrap">{item.label}</span>
+                  <span className="truncate">{item.label}</span>
                 </div>
                 {item.badge && <span className="ml-2 shrink-0">{item.badge}</span>}
               </button>
@@ -249,7 +251,7 @@ export const Sidebar: React.FC = () => {
         </nav>
 
         {/* Footer */}
-        <div className="p-3 border-t border-zinc-200 dark:border-zinc-800/80 text-xs text-zinc-500 dark:text-zinc-400 flex items-center justify-between bg-white/40 dark:bg-[#101014]/40">
+        <div className="p-3 border-t border-zinc-200 dark:border-zinc-800/80 text-xs text-zinc-500 dark:text-zinc-400 flex items-center justify-between bg-transparent dark:bg-transparent">
           <span className="flex items-center gap-1.5 font-mono text-[11px]">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
             Локальная БД

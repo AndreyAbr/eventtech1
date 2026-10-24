@@ -200,13 +200,13 @@ export const Topbar: React.FC = () => {
           </button>
 
           {/* Segmented Role Switcher */}
-          <div className="flex items-center bg-zinc-100 dark:bg-zinc-800/80 p-0.5 rounded-md border border-zinc-200/80 dark:border-zinc-700/80 shrink-0">
+          <div className="flex items-center bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-md border border-zinc-200 dark:border-zinc-800 shrink-0">
             <button
               onClick={() => handleRoleChange('admin')}
               className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${
                 currentUserRole === 'admin'
-                  ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
             >
               Админ
@@ -215,8 +215,8 @@ export const Topbar: React.FC = () => {
               onClick={() => handleRoleChange('team')}
               className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${
                 currentUserRole === 'team'
-                  ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
             >
               Команда
@@ -225,8 +225,8 @@ export const Topbar: React.FC = () => {
               onClick={() => handleRoleChange('guest')}
               className={`px-2 py-0.5 rounded text-xs font-medium transition-all ${
                 currentUserRole === 'guest'
-                  ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
             >
               Гость

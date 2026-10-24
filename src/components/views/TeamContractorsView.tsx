@@ -196,8 +196,8 @@ export const TeamContractorsView: React.FC = () => {
               onClick={() => setActiveSection('team')}
               className={`px-3 py-1 rounded text-xs font-medium transition-all ${
                 activeSection === 'team'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
             >
               Команда ({activeTeam.length})
@@ -206,8 +206,8 @@ export const TeamContractorsView: React.FC = () => {
               onClick={() => setActiveSection('contractors')}
               className={`px-3 py-1 rounded text-xs font-medium transition-all ${
                 activeSection === 'contractors'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
             >
               Подрядчики ({activeContractors.length})
@@ -216,8 +216,8 @@ export const TeamContractorsView: React.FC = () => {
               onClick={() => setActiveSection('marketplace')}
               className={`px-3 py-1 rounded text-xs font-medium transition-all ${
                 activeSection === 'marketplace'
-                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100'
+                  ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-xs'
+                  : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
               }`}
             >
               Каталог площадок ({marketplaceItems.length})
@@ -346,12 +346,20 @@ export const TeamContractorsView: React.FC = () => {
                       aria-label="Статус договора с подрядчиком"
                       value={cont.status}
                       onChange={e => updateContractor({ ...cont, status: e.target.value as ContractorStatus })}
-                      className="h-7 px-2 rounded border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-zinc-900 dark:focus:border-zinc-400 cursor-pointer"
+                      className={`h-7 px-2 rounded border text-xs font-medium focus:outline-none cursor-pointer transition-colors ${
+                        cont.status === 'paid'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800/70'
+                          : cont.status === 'contracted'
+                          ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800/70'
+                          : cont.status === 'negotiation'
+                          ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800/70'
+                          : 'bg-zinc-100 text-zinc-700 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700'
+                      }`}
                     >
-                      <option value="negotiation">Переговоры</option>
-                      <option value="contracted">Договор подписан</option>
-                      <option value="paid">Оплачено</option>
-                      <option value="completed">Услуга оказана</option>
+                      <option value="negotiation" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Переговоры</option>
+                      <option value="contracted" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Договор подписан</option>
+                      <option value="paid" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Оплачено</option>
+                      <option value="completed" className="bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100">Услуга оказана</option>
                     </select>
                   </div>
 
