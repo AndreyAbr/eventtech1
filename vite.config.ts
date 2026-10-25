@@ -1,26 +1,41 @@
 import { defineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
-import {
-  getDbState,
-  syncDbState,
-  resetDbState,
-  updateSysConfig,
-  saveSysCatalogItem,
-  deleteSysCatalogItem,
-  executeSql,
-  getTableData,
-  getBackupData,
-  restoreBackupData
-} from './src/server/db';
 
 function sqliteApiPlugin(): Plugin {
   return {
     name: 'sqlite-api-plugin',
-    configureServer(server) {
+    async configureServer(server) {
+      // Dynamically load SQLite database module in dev mode only
+      let dbModule: typeof import('./src/server/db') | null = null;
+      try {
+        dbModule = await import('./src/server/db');
+      } catch (err) {
+        console.warn('SQLite backend module not available in this environment:', err);
+      }
+
       server.middlewares.use((req, res, next) => {
         if (!req.url?.startsWith('/api/')) {
           return next();
         }
+
+        if (!dbModule) {
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.statusCode = 503;
+          return res.end(JSON.stringify({ error: 'Database service is initializing or unavailable' }));
+        }
+
+        const {
+          getDbState,
+          syncDbState,
+          resetDbState,
+          updateSysConfig,
+          saveSysCatalogItem,
+          deleteSysCatalogItem,
+          executeSql,
+          getTableData,
+          getBackupData,
+          restoreBackupData
+        } = dbModule;
 
         const [urlPath] = (req.url || '').split('?');
 
