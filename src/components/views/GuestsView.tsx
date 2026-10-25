@@ -272,9 +272,55 @@ export const GuestsView: React.FC = () => {
 
       {/* SUBTAB 1: GUESTS LIST */}
       {currentSubTab === 'list' && !isGuestMode && (
-        <div className="space-y-3">
-          {/* Filters Bar */}
-          <div className="card-surface p-2.5 flex flex-col md:flex-row items-center justify-between gap-3">
+        <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden bg-white dark:bg-[#111114] shadow-xs">
+          {/* Interactive Status Distribution Quick Bar */}
+          <div className="px-4 py-2 border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50/70 dark:bg-zinc-900/40 flex items-center justify-between text-xs font-mono">
+            <div className="flex items-center gap-3 flex-wrap">
+              <span className="text-zinc-500 dark:text-zinc-400">Статус гостей:</span>
+              <button
+                type="button"
+                onClick={() => setFilterStatus(filterStatus === 'checked_in' ? 'all' : 'checked_in')}
+                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded cursor-pointer transition-colors ${
+                  filterStatus === 'checked_in'
+                    ? 'bg-emerald-600 text-white font-semibold'
+                    : 'hover:bg-zinc-200 dark:hover:bg-zinc-800 text-emerald-700 dark:text-emerald-400'
+                }`}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                На площадке: {activeGuests.filter(g => g.status === 'checked_in').length}
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterStatus(filterStatus === 'confirmed' ? 'all' : 'confirmed')}
+                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded cursor-pointer transition-colors ${
+                  filterStatus === 'confirmed'
+                    ? 'bg-blue-600 text-white font-semibold'
+                    : 'hover:bg-zinc-200 dark:hover:bg-zinc-800 text-blue-700 dark:text-blue-400'
+                }`}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+                Подтверждено: {activeGuests.filter(g => g.status === 'confirmed').length}
+              </button>
+              <button
+                type="button"
+                onClick={() => setFilterStatus(filterStatus === 'registered' ? 'all' : 'registered')}
+                className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded cursor-pointer transition-colors ${
+                  filterStatus === 'registered'
+                    ? 'bg-zinc-700 text-white font-semibold'
+                    : 'hover:bg-zinc-200 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
+                }`}
+              >
+                Зарегистрировано: {activeGuests.filter(g => g.status === 'registered').length}
+              </button>
+            </div>
+
+            <span className="text-zinc-400 text-[11px] hidden sm:inline">
+              Всего: {activeGuests.length} из {activeEvent.plannedHeadcount}
+            </span>
+          </div>
+
+          {/* Unified Filters Toolbar Strip */}
+          <div className="px-4 py-2.5 bg-white dark:bg-[#111114] border-b border-zinc-200 dark:border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2.5 w-full md:w-auto flex-1 flex-wrap">
               <div className="relative flex-1 min-w-[180px] max-w-xs">
                 <input
@@ -282,7 +328,7 @@ export const GuestsView: React.FC = () => {
                   placeholder="Поиск по ФИО, компании, email..."
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  className="input-base w-full pl-8"
+                  className="input-base w-full pl-8 h-8 text-xs"
                 />
                 <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
               </div>
@@ -293,10 +339,10 @@ export const GuestsView: React.FC = () => {
                 onChange={e => setFilterStatus(e.target.value)}
                 className="input-base h-8 text-xs cursor-pointer"
               >
-                <option value="all">Все статусы</option>
+                <option value="all">Все статусы ({activeGuests.length})</option>
                 <option value="registered">Зарегистрирован</option>
                 <option value="confirmed">Подтвержден</option>
-                <option value="checked_in">На площадке</option>
+                <option value="checked_in">На площадке (Чек-ин)</option>
                 <option value="cancelled">Отменен</option>
               </select>
 
@@ -306,7 +352,7 @@ export const GuestsView: React.FC = () => {
                 onChange={e => setFilterTicketType(e.target.value)}
                 className="input-base h-8 text-xs cursor-pointer"
               >
-                <option value="all">Все типы</option>
+                <option value="all">Все типы билетов</option>
                 <option value="Стандарт">Стандарт</option>
                 <option value="VIP">VIP</option>
                 <option value="Спикер">Спикер</option>
@@ -315,10 +361,9 @@ export const GuestsView: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              {/* Broadcast Notification Button */}
               <button
                 onClick={() => setIsBroadcastModalOpen(true)}
-                className="btn-secondary"
+                className="btn-secondary h-8 text-xs"
                 title="Информировать участников (Рассылка)"
               >
                 <Radio className="w-3.5 h-3.5 text-zinc-600 dark:text-zinc-400" />
@@ -332,24 +377,24 @@ export const GuestsView: React.FC = () => {
 
               <button
                 onClick={() => exportGuestsToCSV(activeGuests, activeEvent.title)}
-                className="btn-secondary"
+                className="btn-secondary h-8 text-xs"
               >
                 <FileSpreadsheet className="w-3.5 h-3.5 text-zinc-500 dark:text-zinc-400" />
-                Экспорт CSV
+                <span>Экспорт CSV</span>
               </button>
 
               <button
                 onClick={() => setCurrentSubTab('registration')}
-                className="btn-primary"
+                className="btn-primary h-8 text-xs"
               >
                 <UserPlus className="w-3.5 h-3.5" />
-                Регистрация
+                <span>Регистрация</span>
               </button>
             </div>
           </div>
 
           {/* Table */}
-          <div className="card-surface overflow-hidden">
+          <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead className="bg-zinc-50/80 dark:bg-zinc-900/60 border-b border-zinc-200 dark:border-zinc-800 text-[11px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
                 <tr>

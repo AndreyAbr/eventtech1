@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Save,
   Trash2,
@@ -20,8 +20,14 @@ export const EventSettingsView: React.FC = () => {
     updateEvent,
     deleteEvent,
     events,
-    currentUserRole
+    currentUserRole,
+    sysCatalogs
   } = useEventContext();
+
+  const eventTypes = useMemo(() => {
+    const fromCat = sysCatalogs.filter(c => c.catalogType === 'event_types').map(c => c.name);
+    return fromCat.length > 0 ? fromCat : ['Хакатон', 'Конференция', 'Корпоратив', 'Форум', 'Воркшоп', 'Выставка'];
+  }, [sysCatalogs]);
 
   const [formData, setFormData] = useState<EventEntity | null>(null);
   const [savedNotice, setSavedNotice] = useState(false);
@@ -129,12 +135,9 @@ export const EventSettingsView: React.FC = () => {
                   onChange={e => setFormData({ ...formData, type: e.target.value as EventType })}
                   className="input-base w-full"
                 >
-                  <option value="Хакатон">Хакатон</option>
-                  <option value="Конференция">Конференция</option>
-                  <option value="Корпоратив">Корпоратив</option>
-                  <option value="Форум">Форум</option>
-                  <option value="Воркшоп">Воркшоп</option>
-                  <option value="Выставка">Выставка</option>
+                  {eventTypes.map((t: string) => (
+                    <option key={t} value={t}>{t}</option>
+                  ))}
                 </select>
               </div>
 

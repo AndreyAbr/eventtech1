@@ -181,3 +181,46 @@ export interface NotificationToast {
   message: string;
   timestamp: number;
 }
+
+export interface SysConfigItem {
+  key: string;
+  value: string;
+  label: string;
+  type: 'string' | 'boolean' | 'number' | 'select';
+  groupName: string;
+  options?: string[];
+}
+
+export interface SysCatalogItem {
+  id: string;
+  catalogType: 'budget_categories' | 'event_types' | 'ticket_categories' | string;
+  code: string;
+  name: string;
+  color: string;
+  sortOrder: number;
+  isProtected?: boolean;
+}
+
+export interface AuditLogEntry {
+  id: number;
+  timestamp: string;
+  userName: string;
+  userRole: string;
+  action: string;
+  metadataObject: string;
+  details: string;
+}
+
+export interface TableStat {
+  tableName: string;
+  rowCount: number;
+}
+
+export interface SqlExecutionResult {
+  columns: string[];
+  rows: any[];
+  changes?: number;
+  executionTimeMs: number;
+  error?: string;
+}
+

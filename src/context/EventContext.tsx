@@ -14,7 +14,12 @@ import {
   KanbanStage,
   KanbanStageColor,
   MarketplaceItem,
-  BroadcastMessage
+  BroadcastMessage,
+  SysConfigItem,
+  SysCatalogItem,
+  AuditLogEntry,
+  TableStat,
+  SqlExecutionResult
 } from '../types/event';
 import {
   INITIAL_EVENTS,
@@ -162,12 +167,61 @@ interface EventContextType {
 
   // AI Helpers
   applyAiTasks: (tasksList: { title: string; description: string; priority: TaskItem['priority']; deadline: string }[]) => void;
-  applyAiBudget: (budgetAllocations: { category: ExpenseCategory; amount: number; rationale?: string }[]) => void;
+  applyAiBudget: (budgetAllocations: { category: ExpenseCategory; amount: number; rationale?: string; title?: string }[]) => void;
 
   // Reset demo
   resetDemoData: () => void;
   resetToSeedData: () => void;
+
+  // 1C System Config & Catalogs
+  sysConfig: Record<string, SysConfigItem>;
+  sysCatalogs: SysCatalogItem[];
+  auditLog: AuditLogEntry[];
+  tableStats: TableStat[];
+  updateSysConfig: (updates: Record<string, string>) => Promise<boolean>;
+  saveSysCatalogItem: (item: SysCatalogItem) => Promise<boolean>;
+  deleteSysCatalogItem: (id: string) => Promise<boolean>;
+  executeSql: (query: string) => Promise<SqlExecutionResult>;
+  getTableInspectorData: (tableName: string) => Promise<{ columns: string[]; rows: any[] }>;
+  downloadBackup: () => Promise<void>;
+  restoreBackup: (jsonData: any) => Promise<boolean>;
+  refreshAuditLog: () => Promise<void>;
 }
+
+const DEFAULT_SYS_CONFIG_FALLBACK: Record<string, SysConfigItem> = {
+  org_name: { key: 'org_name', value: 'АНО «Дирекция Технологических Мероприятий»', label: 'Наименование организации', type: 'string', groupName: 'Основные' },
+  strict_budget_control: { key: 'strict_budget_control', value: 'false', label: 'Строгий контроль лимита бюджета', type: 'boolean', groupName: 'Финансы' },
+  budget_warning_threshold: { key: 'budget_warning_threshold', value: '90', label: 'Порог предупреждения об исчерпании сметы (%)', type: 'number', groupName: 'Финансы' },
+  tax_rate_percent: { key: 'tax_rate_percent', value: '0', label: 'Ставка налога / УСН / НДС (%)', type: 'number', groupName: 'Финансы' },
+  default_currency: { key: 'default_currency', value: 'RUB', label: 'Валюта регламентированного учета', type: 'select', groupName: 'Финансы', options: ['RUB', 'USD', 'EUR', 'KZT'] },
+  allow_public_registration: { key: 'allow_public_registration', value: 'true', label: 'Разрешить публичную регистрацию гостей', type: 'boolean', groupName: 'Регистрация' },
+  auto_checkin_qr: { key: 'auto_checkin_qr', value: 'true', label: 'Мгновенный чек-ин по QR', type: 'boolean', groupName: 'Регистрация' },
+  default_event_headcount: { key: 'default_event_headcount', value: '200', label: 'Плановая квота участников по умолчанию', type: 'number', groupName: 'Основные' }
+};
+
+const DEFAULT_SYS_CATALOGS_FALLBACK: SysCatalogItem[] = [
+  { id: 'cat-b-1', catalogType: 'budget_categories', code: 'BC-01', name: 'Аренда площадки', color: '#3B82F6', sortOrder: 1, isProtected: true },
+  { id: 'cat-b-2', catalogType: 'budget_categories', code: 'BC-02', name: 'Кейтеринг', color: '#F43F5E', sortOrder: 2, isProtected: true },
+  { id: 'cat-b-3', catalogType: 'budget_categories', code: 'BC-03', name: 'Оборудование', color: '#8B5CF6', sortOrder: 3, isProtected: true },
+  { id: 'cat-b-4', catalogType: 'budget_categories', code: 'BC-04', name: 'Маркетинг и реклама', color: '#F59E0B', sortOrder: 4, isProtected: true },
+  { id: 'cat-b-5', catalogType: 'budget_categories', code: 'BC-05', name: 'Полиграфия и мерч', color: '#10B981', sortOrder: 5, isProtected: true },
+  { id: 'cat-b-6', catalogType: 'budget_categories', code: 'BC-06', name: 'Работа подрядчиков', color: '#64748B', sortOrder: 6, isProtected: true },
+  { id: 'cat-b-7', catalogType: 'budget_categories', code: 'BC-07', name: 'Логистика', color: '#06B6D4', sortOrder: 7, isProtected: true },
+  { id: 'cat-b-8', catalogType: 'budget_categories', code: 'BC-08', name: 'Безопасность', color: '#EF4444', sortOrder: 8, isProtected: true },
+  { id: 'cat-b-9', catalogType: 'budget_categories', code: 'BC-09', name: 'Прочее', color: '#71717A', sortOrder: 9, isProtected: true },
+  { id: 'cat-e-1', catalogType: 'event_types', code: 'ET-01', name: 'Хакатон', color: '#6366F1', sortOrder: 1, isProtected: true },
+  { id: 'cat-e-2', catalogType: 'event_types', code: 'ET-02', name: 'Конференция', color: '#3B82F6', sortOrder: 2, isProtected: true },
+  { id: 'cat-e-3', catalogType: 'event_types', code: 'ET-03', name: 'Форум', color: '#10B981', sortOrder: 3, isProtected: true },
+  { id: 'cat-e-4', catalogType: 'event_types', code: 'ET-04', name: 'Воркшоп', color: '#F59E0B', sortOrder: 4, isProtected: true },
+  { id: 'cat-e-5', catalogType: 'event_types', code: 'ET-05', name: 'Выставка', color: '#EC4899', sortOrder: 5, isProtected: true },
+  { id: 'cat-e-6', catalogType: 'event_types', code: 'ET-06', name: 'Корпоратив', color: '#8B5CF6', sortOrder: 6, isProtected: true },
+  { id: 'cat-t-1', catalogType: 'ticket_categories', code: 'TC-01', name: 'Стандарт', color: '#71717A', sortOrder: 1, isProtected: true },
+  { id: 'cat-t-2', catalogType: 'ticket_categories', code: 'TC-02', name: 'VIP', color: '#F59E0B', sortOrder: 2, isProtected: true },
+  { id: 'cat-t-3', catalogType: 'ticket_categories', code: 'TC-03', name: 'Спикер', color: '#8B5CF6', sortOrder: 3, isProtected: true },
+  { id: 'cat-t-4', catalogType: 'ticket_categories', code: 'TC-04', name: 'Пресса', color: '#06B6D4', sortOrder: 4, isProtected: true },
+  { id: 'cat-t-5', catalogType: 'ticket_categories', code: 'TC-05', name: 'Партнер', color: '#10B981', sortOrder: 5, isProtected: true },
+  { id: 'cat-t-6', catalogType: 'ticket_categories', code: 'TC-06', name: 'Оргкомитет', color: '#3B82F6', sortOrder: 6, isProtected: true }
+];
 
 const EventContext = createContext<EventContextType | undefined>(undefined);
 
@@ -262,6 +316,12 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     connected: false
   });
 
+  // 1C System Config, Catalogs, Audit Log and Table Stats
+  const [sysConfig, setSysConfig] = useState<Record<string, SysConfigItem>>(DEFAULT_SYS_CONFIG_FALLBACK);
+  const [sysCatalogs, setSysCatalogs] = useState<SysCatalogItem[]>(DEFAULT_SYS_CATALOGS_FALLBACK);
+  const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([]);
+  const [tableStats, setTableStats] = useState<TableStat[]>([]);
+
   // Dark Mode Theme State
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     try {
@@ -323,6 +383,10 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
               setKanbanStages(data.kanbanStages || INITIAL_KANBAN_STAGES);
               setBroadcasts(data.mailings || []);
               setUsers(data.users || INITIAL_USERS);
+              if (data.sysConfig) setSysConfig(data.sysConfig);
+              if (data.sysCatalogs) setSysCatalogs(data.sysCatalogs);
+              if (data.auditLog) setAuditLog(data.auditLog);
+              if (data.tableStats) setTableStats(data.tableStats);
               if (data.meta) {
                 setDbMeta({
                   dbEngine: data.meta.dbEngine || 'SQLite 3 (WAL)',
@@ -387,7 +451,9 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           feedbacks: surveys,
           kanbanStages,
           mailings: broadcasts,
-          users
+          users,
+          userName: currentUser?.name || 'Андрей Абрамов',
+          userRole: currentUser?.role || 'admin'
         };
 
         const res = await fetch('/api/sync', {
@@ -398,6 +464,8 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
         if (res.ok) {
           const updated = await res.json();
+          if (updated.auditLog) setAuditLog(updated.auditLog);
+          if (updated.tableStats) setTableStats(updated.tableStats);
           if (updated.meta) {
             setDbMeta({
               dbEngine: updated.meta.dbEngine || 'SQLite 3 (WAL)',
@@ -525,7 +593,14 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     } catch {}
 
     try {
-      const res = await fetch('/api/reset', { method: 'POST' });
+      const res = await fetch('/api/reset', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userName: currentUser?.name || 'Андрей Абрамов',
+          userRole: currentUser?.role || 'admin'
+        })
+      });
       if (res.ok) {
         const data = await res.json();
         setEvents(data.events);
@@ -538,6 +613,10 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         setKanbanStages(data.kanbanStages);
         setBroadcasts(data.mailings || []);
         setUsers(data.users);
+        if (data.sysConfig) setSysConfig(data.sysConfig);
+        if (data.sysCatalogs) setSysCatalogs(data.sysCatalogs);
+        if (data.auditLog) setAuditLog(data.auditLog);
+        if (data.tableStats) setTableStats(data.tableStats);
         setActiveEventId(data.events[0]?.id || 'evt-1');
         setActiveTab('dashboard');
         setSelectedTeamMemberFilter(null);
@@ -572,6 +651,8 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     setKanbanStages(INITIAL_KANBAN_STAGES);
     setBroadcasts(INITIAL_BROADCASTS);
     setUsers(INITIAL_USERS);
+    setSysConfig(DEFAULT_SYS_CONFIG_FALLBACK);
+    setSysCatalogs(DEFAULT_SYS_CATALOGS_FALLBACK);
     setActiveEventId('evt-1');
     setActiveTab('dashboard');
     setSelectedTeamMemberFilter(null);
@@ -584,6 +665,213 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
 
   const resetToSeedData = resetDemoData;
+
+  // Refresh audit log & stats from server
+  const refreshAuditLog = async (): Promise<void> => {
+    try {
+      const res = await fetch('/api/state');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.auditLog) setAuditLog(data.auditLog);
+        if (data.tableStats) setTableStats(data.tableStats);
+        if (data.meta) {
+          setDbMeta({
+            dbEngine: data.meta.dbEngine || 'SQLite 3 (WAL)',
+            dbFile: data.meta.dbFile || 'data/eventtech.db',
+            dbSizeKB: data.meta.dbSizeKB || 0,
+            totalRecords: data.meta.totalRecords || 0,
+            connected: true
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('refreshAuditLog error:', err);
+    }
+  };
+
+  const updateSysConfig = async (updates: Record<string, string>): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/admin/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          config: updates,
+          userName: currentUser?.name || 'Андрей Абрамов',
+          userRole: currentUser?.role || 'admin'
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.config) {
+          setSysConfig(data.config);
+        }
+        notify('Константы информационной базы успешно записаны в SQLite', 'success');
+        refreshAuditLog();
+        return true;
+      }
+    } catch {
+      notify('Ошибка записи констант в БД', 'error');
+    }
+    return false;
+  };
+
+  const saveSysCatalogItem = async (item: SysCatalogItem): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/admin/catalogs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'save',
+          item,
+          userName: currentUser?.name || 'Андрей Абрамов',
+          userRole: currentUser?.role || 'admin'
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.catalogs) {
+          setSysCatalogs(data.catalogs);
+        }
+        notify(`Элемент справочника «${item.name}» записан`, 'success');
+        refreshAuditLog();
+        return true;
+      }
+    } catch {
+      notify('Ошибка сохранения справочника', 'error');
+    }
+    return false;
+  };
+
+  const deleteSysCatalogItem = async (id: string): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/admin/catalogs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'delete',
+          id,
+          userName: currentUser?.name || 'Андрей Абрамов',
+          userRole: currentUser?.role || 'admin'
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.catalogs) {
+          setSysCatalogs(data.catalogs);
+        }
+        notify('Элемент справочника удален', 'info');
+        refreshAuditLog();
+        return true;
+      }
+    } catch {
+      notify('Ошибка удаления элемента справочника', 'error');
+    }
+    return false;
+  };
+
+  const executeSql = async (query: string): Promise<SqlExecutionResult> => {
+    try {
+      const res = await fetch('/api/admin/sql', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query,
+          userName: currentUser?.name || 'Андрей Абрамов',
+          userRole: currentUser?.role || 'admin'
+        })
+      });
+      if (res.ok) {
+        const result: SqlExecutionResult = await res.json();
+        refreshAuditLog();
+        return result;
+      }
+      return {
+        columns: ['error'],
+        rows: [{ error: `HTTP ${res.status}: ${res.statusText}` }],
+        executionTimeMs: 0,
+        error: `HTTP ${res.status}`
+      };
+    } catch (err: any) {
+      return {
+        columns: ['error'],
+        rows: [{ error: err.message }],
+        executionTimeMs: 0,
+        error: err.message
+      };
+    }
+  };
+
+  const getTableInspectorData = async (tableName: string): Promise<{ columns: string[]; rows: any[] }> => {
+    try {
+      const res = await fetch(`/api/admin/table/${encodeURIComponent(tableName)}`);
+      if (res.ok) {
+        return await res.json();
+      }
+    } catch (err) {
+      console.error('Failed to inspect table:', err);
+    }
+    return { columns: [], rows: [] };
+  };
+
+  const downloadBackup = async (): Promise<void> => {
+    try {
+      const res = await fetch('/api/admin/backup');
+      if (res.ok) {
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const dateStr = new Date().toISOString().split('T')[0];
+        a.download = `eventtech_backup_${dateStr}.json`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        notify('Резервная копия информационной базы успешно выгружена (.json)', 'success');
+        refreshAuditLog();
+      }
+    } catch {
+      notify('Ошибка скачивания резервной копии', 'error');
+    }
+  };
+
+  const restoreBackup = async (jsonData: any): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/admin/restore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dump: jsonData,
+          userName: currentUser?.name || 'Андрей Абрамов',
+          userRole: currentUser?.role || 'admin'
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.state) {
+          if (data.state.events) setEvents(data.state.events);
+          if (data.state.tasks) setTasks(data.state.tasks);
+          if (data.state.budgetItems) setBudgetItems(data.state.budgetItems);
+          if (data.state.guests) setGuests(data.state.guests);
+          if (data.state.teamMembers) setTeamMembers(data.state.teamMembers);
+          if (data.state.contractors) setContractors(data.state.contractors);
+          if (data.state.feedbacks) setSurveys(data.state.feedbacks);
+          if (data.state.kanbanStages) setKanbanStages(data.state.kanbanStages);
+          if (data.state.mailings) setBroadcasts(data.state.mailings);
+          if (data.state.users) setUsers(data.state.users);
+          if (data.state.sysConfig) setSysConfig(data.state.sysConfig);
+          if (data.state.sysCatalogs) setSysCatalogs(data.state.sysCatalogs);
+          if (data.state.auditLog) setAuditLog(data.state.auditLog);
+          if (data.state.tableStats) setTableStats(data.state.tableStats);
+        }
+        notify('Информационная база успешно восстановлена из резервной копии', 'success');
+        return true;
+      }
+    } catch {
+      notify('Ошибка восстановления резервной копии', 'error');
+    }
+    return false;
+  };
 
   // Active event items
   const activeEvent = useMemo(() => {
@@ -996,13 +1284,13 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     notify(`Импортировано ${newTasks.length} задач в план работ!`, 'success');
   };
 
-  const applyAiBudget = (budgetAllocations: { category: ExpenseCategory; amount: number; rationale?: string }[]) => {
+  const applyAiBudget = (budgetAllocations: { category: ExpenseCategory; amount: number; rationale?: string; title?: string }[]) => {
     if (!activeEvent) return;
     const newItems: BudgetItem[] = budgetAllocations.map((b, idx) => ({
       id: 'bud-ai-' + Date.now().toString(36) + idx,
       eventId: activeEvent.id,
       category: b.category,
-      title: `Норматив: ${b.category}`,
+      title: b.title || `Норматив: ${b.category}`,
       plannedAmount: Math.round(b.amount),
       actualAmount: 0,
       notes: b.rationale || 'Сформировано по отраслевым стандартам'
@@ -1012,7 +1300,8 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       ...prev.filter(item => item.eventId !== activeEvent.id),
       ...newItems
     ]);
-    notify(`Смета обновлена (${newItems.length} категорий на сумму ${activeEvent.totalBudgetLimit.toLocaleString('ru-RU')} ₽)`, 'success');
+    const totalAllocated = newItems.reduce((acc, curr) => acc + curr.plannedAmount, 0);
+    notify(`Смета обновлена (${newItems.length} статей на сумму ${totalAllocated.toLocaleString('ru-RU')} ₽)`, 'success');
   };
 
   return (
@@ -1095,7 +1384,19 @@ export const EventProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         applyAiTasks,
         applyAiBudget,
         resetDemoData,
-        resetToSeedData
+        resetToSeedData,
+        sysConfig,
+        sysCatalogs,
+        auditLog,
+        tableStats,
+        updateSysConfig,
+        saveSysCatalogItem,
+        deleteSysCatalogItem,
+        executeSql,
+        getTableInspectorData,
+        downloadBackup,
+        restoreBackup,
+        refreshAuditLog
       }}
     >
       {children}
